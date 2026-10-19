@@ -46,10 +46,13 @@ function scoped(c, key, format) {
 const COST_NOTE = 'API-equivalent estimate';
 const COST_TITLE = "Claude Code's estimate at API list prices. A Pro or Max subscription does not bill this amount.";
 
-function costValue(usd) {
+/** Cost as the agent that ran the session reported it; only Claude Code writes it at session end. */
+function costValue(usd, agent = 'Claude Code') {
   const cost = formatCost(usd);
-  if (!cost) return na('Claude Code writes cost when a session ends');
-  return `<span title="${escapeHtml(COST_TITLE)}">${cost}</span> <span class="metrics-note">${COST_NOTE}</span>`;
+  const claude = agent === 'Claude Code';
+  if (!cost) return na(claude ? 'Claude Code writes cost when a session ends' : `${agent} reported no cost`);
+  const title = claude ? COST_TITLE : `${agent}'s reported cost at API list prices. A subscription does not bill this amount.`;
+  return `<span title="${escapeHtml(title)}">${cost}</span> <span class="metrics-note">${COST_NOTE}</span>`;
 }
 
 /** Each joined session's cost, in chain order, so a reader sees where a total came from. */
@@ -140,7 +143,7 @@ export function renderMetrics(story) {
       row('Cache write', formatTokens(u.cache_creation_tokens) || na()),
       ...(isNum(u.cache_read_share) ? [row('Read from cache', `${Math.round(u.cache_read_share * 100)}% of input`)] : []),
       ...(isNum(u.cache_breaks) ? [row('Cache breaks', `<span title="${CACHE_BREAK_TITLE}">${u.cache_breaks}</span>`)] : []),
-      row('Cost', costValue(u.total_cost_usd)),
+      row('Cost', costValue(u.total_cost_usd, (story.environment && story.environment.agent && story.environment.agent.name) || undefined)),
       ...((u.sessions || []).length > 1 ? [row('Cost by session', costBySession(u.sessions))] : []),
       row('Models', (u.models || []).map((model) => `<code>${escapeHtml(model)}</code>`).join(', ') || na()),
       row('Source', USAGE_SOURCE_LABEL[u.source] || escapeHtml(u.source)),

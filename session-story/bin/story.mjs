@@ -6,6 +6,8 @@ import { parseTranscript } from '../src/transcript/parse.mjs';
 import { liveSessionIds } from '../src/transcript/live.mjs';
 import { locateSession, locateSubagents, locateChain, defaultClaudeDir, subagentMetaPath } from '../src/transcript/locate.mjs';
 import { buildStory, refreshDerived } from '../src/transcript/claude-code.mjs';
+import { readEventLog } from '../src/transcript/agents/run-log.mjs';
+import { recordsFromEvents } from '../src/transcript/agents/index.mjs';
 import { fillBashEditsFromGit } from '../src/ir/git-edits.mjs';
 import { computeMetrics } from '../src/ir/metrics.mjs';
 import { fillBasesFromDisk } from '../src/ir/disk-base.mjs';
@@ -161,7 +163,79 @@ function blindSpots({ ranShell, recovered, commits = 0, chain = [] }) {
   return spots;
 }
 
+/**
+ * Any other agent's event log (a Paperclip run log, a Codex rollout, an
+ * agent's saved JSON output) as the records and session details a Claude
+ * Code transcript would give (src/transcript/agents/).
+ */
+async function loadEventLog(opts) {
+  const log = await readEventLog(opts.log);
+  const promptGiven = typeof opts.prompt === 'string' && opts.prompt.trim() !== '';
+  const translated = recordsFromEvents(log.events, {
+    dialect: typeof opts.agent === 'string' ? opts.agent : undefined,
+    // Used only when the agent did not record its own prompt.
+    prompt: promptGiven ? opts.prompt.trim() : '(prompt not recorded)',
+    startedAt: log.startedAt,
+    model: typeof opts.model === 'string' ? opts.model : null,
+  });
+  const spots = [];
+  if (!translated.promptRecorded) {
+    spots.push(promptGiven
+      ? `This log does not include the prompt ${translated.agent.name} was given; turn 1 shows the one supplied with --prompt.`
+      : `This log does not include the prompt ${translated.agent.name} was given, so turn 1 shows none.`);
+  }
+  spots.push(...(translated.spots || []));
+  return {
+    records: translated.records,
+    subagents: {},
+    sessionId: log.id,
+    chain: [log.id],
+    cwd: opts.cwd || translated.cwd || process.cwd(),
+    agent: translated.agent,
+    spots,
+    source: { format: translated.dialect, agent_session_id: translated.sessionId, ...(log.paperclip ? { paperclip: log.paperclip } : {}) },
+  };
+}
+
 async function cmdExtract(opts) {
+  const source = opts.log ? await loadEventLog(opts) : await loadClaudeSession(opts);
+  const { records, subagents, chain, cwd } = source;
+
+  const story = buildStory(records, { sessionId: source.sessionId, cwd, subagents });
+  story.session.chain = chain;
+  if (source.agent) story.environment.agent = source.agent;
+  if (source.source) story.session.source = source.source;
+  // Bash carries no diff in the transcript; git does. Recover those changes
+  // and re-derive the counts around them (see src/ir/git-edits.mjs).
+  const ranShell = story.turns.some((t) => (t.bash || []).length > 0);
+  const recovered = opts.git === false ? 0 : fillBashEditsFromGit(story);
+  if (recovered > 0) refreshDerived(story);
+  // Files the transcript never snapshotted can often still be read from
+  // disk; only verified reversals are kept (see src/ir/disk-base.mjs).
+  fillBasesFromDisk(story);
+  story.report.dependencies = buildDependencies(story);
+  if (opts.git !== false) fillGitState(story);
+  // Metrics come last: the git pass above can add edits and change totals.
+  story.metrics = computeMetrics(story);
+  story.generator = { name: 'session-story', version: '0.4.0' };
+  const gitCommits = (story.report.git && story.report.git.commits) || [];
+  story.session.blind_spots = [
+    ...(source.spots || []),
+    ...blindSpots({ ranShell, recovered, commits: gitCommits.length, chain: story.session.chain }),
+  ];
+  story.session.title = null;
+
+  const outPath = opts.output || 'story.json';
+  await writeFile(outPath, JSON.stringify(story, null, 2));
+  const joined = chain.length > 1 ? `, ${chain.length} sessions joined across /clear` : '';
+  process.stderr.write(`Wrote ${outPath} (${story.turns.length} turns, ${story.files.length} files${joined})\n`);
+
+  if (opts.brief) {
+    process.stdout.write(JSON.stringify(briefProjection(story), null, 2) + '\n');
+  }
+}
+
+async function loadClaudeSession(opts) {
   const cwd = opts.cwd || process.cwd();
   const claudeDir = opts['claude-dir'] || defaultClaudeDir();
   const located = await locateSession({
@@ -203,38 +277,7 @@ async function cmdExtract(opts) {
     }
   }
 
-  const story = buildStory(records, { sessionId: located.sessionId, cwd, subagents });
-  story.session.chain = chain.map((link) => link.sessionId);
-  // Bash carries no diff in the transcript; git does. Recover those changes
-  // and re-derive the counts around them (see src/ir/git-edits.mjs).
-  const ranShell = story.turns.some((t) => (t.bash || []).length > 0);
-  const recovered = opts.git === false ? 0 : fillBashEditsFromGit(story);
-  if (recovered > 0) refreshDerived(story);
-  // Files the transcript never snapshotted can often still be read from
-  // disk; only verified reversals are kept (see src/ir/disk-base.mjs).
-  fillBasesFromDisk(story);
-  story.report.dependencies = buildDependencies(story);
-  if (opts.git !== false) fillGitState(story);
-  // Metrics come last: the git pass above can add edits and change totals.
-  story.metrics = computeMetrics(story);
-  story.generator = { name: 'session-story', version: '0.4.0' };
-  const gitCommits = (story.report.git && story.report.git.commits) || [];
-  story.session.blind_spots = blindSpots({
-    ranShell,
-    recovered,
-    commits: gitCommits.length,
-    chain: story.session.chain,
-  });
-  story.session.title = null;
-
-  const outPath = opts.output || 'story.json';
-  await writeFile(outPath, JSON.stringify(story, null, 2));
-  const joined = chain.length > 1 ? `, ${chain.length} sessions joined across /clear` : '';
-  process.stderr.write(`Wrote ${outPath} (${story.turns.length} turns, ${story.files.length} files${joined})\n`);
-
-  if (opts.brief) {
-    process.stdout.write(JSON.stringify(briefProjection(story), null, 2) + '\n');
-  }
+  return { records, subagents, sessionId: located.sessionId, chain: chain.map((link) => link.sessionId), cwd };
 }
 
 async function cmdValidate(opts) {

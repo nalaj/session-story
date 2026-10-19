@@ -160,7 +160,11 @@ session" / "/session-story".
 
 ## Limits
 
-- Claude Code sessions only (v1). Codex/Cursor/OpenCode are out of scope.
+- Another agent's session (Codex, Cursor, OpenCode, a headless Claude
+  run, or a Paperclip run log) is read with `extract --log <file>` in
+  step 1 instead of locating a Claude Code transcript. The page header
+  names what that log does not record; never fill those gaps in the
+  summary.
 - `Edit`, `Write`, and `NotebookEdit` calls are read from the transcript.
   Changes made through `Bash` (`sed -i`, a heredoc script, a formatter)
   carry no diff there, so they are recovered from git instead: the tree is
