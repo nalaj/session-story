@@ -85,6 +85,14 @@ Or just ask: "make a story of this session for my teammate".
 
 Claude extracts the current session, writes one-sentence summaries per turn, and opens the rendered page. See [`session-story/SKILL.md`](session-story/SKILL.md) for the exact flow.
 
+**Older sessions work too.** The story is built from the transcript Claude Code keeps on disk, not from the model's context, so a session from days ago is as good as the current one. Ask "make a session story for session `<session-id>`", or from the command line:
+
+```bash
+node session-story/bin/story.mjs extract --session <session-id> -o story.json
+```
+
+Session ids are the transcript file names in `~/.claude/projects/<slug>/` (the slug is the project path with `/` replaced by `-`), and `/resume` lists them too. Pass the full id, and `--cwd <dir>` when you are not in the project directory. Claude Code deletes transcripts after `cleanupPeriodDays` (30 by default), and edits made through the shell are recovered against today's git tree, so for an old session they can be misattributed if the files changed since.
+
 ### 3. Review, hand off, or share
 
 Open the generated HTML file. Switch views depending on the audience — see below.
