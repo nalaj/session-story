@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Extraction stays inside the project folder. When the project is a subfolder of a larger git repo, only files under it are credited to turns and read, by project-relative path; before, a file elsewhere in the repo could be credited and its committed contents shown. Files outside the project are never read from disk for the full-file view (their edits keep their diffs). `render --open` passes the path to the opener without a shell.
+
 ## 0.4.0
 
 - Installable as a Claude Code plugin: the repository is a plugin marketplace (`.claude-plugin/marketplace.json`). Run `/plugin marketplace add nalaj/session-story`, then `/plugin install session-story@session-story`.
