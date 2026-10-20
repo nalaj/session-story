@@ -18,7 +18,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/Agent-Skill-7C3AED?style=flat-square" alt="Agent Skill" />
   <img src="https://img.shields.io/badge/node-%3E%3D18.18-339933?style=flat-square" alt="Node 18.18 or later" />
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.4.0-0891b2?style=flat-square" alt="Version 0.4.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.5.0-0891b2?style=flat-square" alt="Version 0.5.0" /></a>
 </p>
 
 ## Session Story

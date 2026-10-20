@@ -11,7 +11,7 @@
       "name": "session-story",
       "source": "./session-story",
       "description": "Generate a self-contained HTML session story that links each prompt to the file edits it caused, with a review timeline, a GitHub-style diff view, and a plain-language narrative.",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "author": {
         "name": "Nenad Alajbegovic"
       },

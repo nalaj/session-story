@@ -217,7 +217,7 @@ async function cmdExtract(opts) {
   if (opts.git !== false) fillGitState(story);
   // Metrics come last: the git pass above can add edits and change totals.
   story.metrics = computeMetrics(story);
-  story.generator = { name: 'session-story', version: '0.4.0' };
+  story.generator = { name: 'session-story', version: '0.5.0' };
   const gitCommits = (story.report.git && story.report.git.commits) || [];
   story.session.blind_spots = blindSpots({
     ranShell,
