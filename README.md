@@ -172,6 +172,7 @@ Command-line equivalent of the full flow (from a clone; an installed skill lives
 
 ```bash
 node session-story/bin/story.mjs extract [--session <id>|--latest] [--cwd <dir>] [--no-chain] -o story.json
+node session-story/bin/story.mjs extract --log <file> [--agent <format>] [--prompt <text>] [--model <id>] [--cwd <dir>] -o story.json
 node session-story/bin/story.mjs validate story.json [--strict]
 node session-story/bin/story.mjs render story.json [--library <dir>|-o story.html|--no-library] [--open]
 node session-story/bin/story.mjs export story.json [--template pr|handoff] [-o out.md] [--all-files]
@@ -185,12 +186,12 @@ Run without any Claude-written summaries, `render` falls back to the first line 
 
 A story page holds your session word for word: prompts, Claude's replies, diffs, command lines and their errors. If a secret passed through the session, it can be in the page. Read the page before you share it.
 
-- The extractor reads only local files: the transcript under `~/.claude/projects/<slug>/` and, for shell-driven edits, `git` in your project. It makes no network requests, and the rendered page loads nothing remote.
+- The extractor reads only local files: the transcript under `~/.claude/projects/<slug>/` (or the log passed with `--log`) and, for shell-driven edits, `git` in your project. It makes no network requests, and the rendered page loads nothing remote.
 - Stories go to `.session-stories/` in your project. Add it to `.gitignore` unless you mean to commit them.
 
 ## Limits (v1)
 
-- Claude Code sessions only — Codex, Cursor, and OpenCode transcripts are a different format. Support for them is planned.
+- Other agents are read with `extract --log <file>`: a Codex session file (`~/.codex/sessions/…/rollout-*.jsonl`), the saved JSON output of `codex exec --json`, `cursor-agent -p --output-format stream-json`, `opencode run --format json` or `claude -p --output-format stream-json`, or a [Paperclip](https://github.com/paperclipai/paperclip) run log wrapping any of them. The format is detected from the events (`--agent` overrides it). Each agent records less than a Claude Code transcript in some way, and the page header names what is missing: a log that carries no prompt shows turn 1 without one unless `--prompt` supplies it, `codex exec` names changed files without their diff, and only Claude Code and OpenCode report cost. Gemini CLI is not supported.
 - `Edit`, `Write`, and `NotebookEdit` calls come from the transcript, which carries their diffs. `Bash` results do not, so shell-driven changes (`sed -i`, a heredoc script, `prettier --write`) are recovered from git: the tree is diffed from the commit the repo was on when the session started through to the working tree (so changes the session committed are included), files already dirty before the session are filtered out by mtime, and each change is credited to the turn whose commands account for it. These edits are marked "via shell" on the page. They inherit git's blind spots — a file edited again after the session shows both changes, and a commit made during the session by someone else is indistinguishable from the session's own — so the page states that too. `extract --no-git` skips the pass, and with it the Report lens's git state (its commands, tests, errors, and dependency sections still come from the transcript alone).
 - `/clear` does not continue a session, it starts a new transcript file, so the work before it would otherwise be missing from the story. Sessions split that way are joined automatically: the predecessor is found by its file mtime, which Claude Code lands on the `/clear` record's timestamp, and the chain is followed back as far as it goes. `session.chain` lists the joined ids oldest first and the page header names them. `extract --no-chain` extracts the one session alone.
 - A tool call whose result never arrived (an interrupted session) is shown as "edit attempted, result unknown" rather than causing an error; one whose result was an error is shown as "edit failed" with the error message.
@@ -200,7 +201,7 @@ A story page holds your session word for word: prompts, Claude's replies, diffs,
 
 - [Skill definition](session-story/SKILL.md) · [Schema](session-story/schemas/story.schema.json) · [Example output](examples/story.html) · [Changelog](CHANGELOG.md)
 
-A hosted viewer and WYSIWYG editing are intentionally outside the current scope. Codex/Cursor/OpenCode support is planned for a later release.
+A hosted viewer and WYSIWYG editing are intentionally outside the current scope.
 
 ## Repository layout
 

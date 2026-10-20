@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Stories from other agents: `extract --log <file>` reads Codex session files and the JSON output of `codex exec`, Cursor Agent, OpenCode and headless Claude Code, including Paperclip run logs that wrap them. Each format is translated into Claude Code records, so every view, metric and export works unchanged; what a format does not record is named on the page.
+- The Usage panel names the agent that did or did not report a cost, instead of always citing Claude Code.
+
 ## 0.4.0
 
 - Installable as a Claude Code plugin: the repository is a plugin marketplace (`.claude-plugin/marketplace.json`). Run `/plugin marketplace add nalaj/session-story`, then `/plugin install session-story@session-story`.

@@ -184,3 +184,13 @@ test('Where it went lists turns with cache breaks, even a single one', () => {
   assert.match(renderWhereItWent(one), /By cache breaks/);
   assert.doesNotMatch(renderWhereItWent(whereStory()), /By cache breaks/);
 });
+
+test('metrics panel names the agent that ran a non-Claude session when it reported no cost', () => {
+  const story = {
+    metrics: metrics({ usage: { ...metrics().usage, total_cost_usd: null, source: 'transcript' } }),
+    environment: { agent: { name: 'Cursor Agent', version: null }, models: ['Composer 2.5'] },
+  };
+  const html = renderMetrics(story);
+  assert.match(html, /Cursor Agent reported no cost/);
+  assert.doesNotMatch(html, /Claude Code writes cost/);
+});
