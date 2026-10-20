@@ -269,6 +269,14 @@ export function fillBashEditsFromGit(story, deps = {}) {
   // Diff from where the repo stood when the session started, so changes it
   // made and then committed are not lost. With no commits since, that is
   // HEAD and this is the plain working-tree diff.
+  // Git reports paths from the repository root. When the project is a
+  // subfolder of a larger repo, keep only files inside it and make their
+  // paths project-relative, so nothing outside the project is read.
+  const prefix = (safe(() => git(['rev-parse', '--show-prefix'])) || '').trim();
+  const inProject = (entries) => entries
+    .filter((c) => c.rel.startsWith(prefix))
+    .map((c) => ({ ...c, rel: c.rel.slice(prefix.length) }));
+
   const head = (safe(() => git(['rev-parse', 'HEAD'])) || '').trim() || null;
   const startSha = sessionStartCommit(git, story.session && story.session.started_at);
   const base = startSha && startSha !== head ? startSha : 'HEAD';
@@ -289,10 +297,10 @@ export function fillBashEditsFromGit(story, deps = {}) {
   // Tracked files: everything that differs between the base and the working
   // tree (committed or not). Untracked files have no base to diff against,
   // so they still come from the status listing.
-  const tracked = base === 'HEAD'
+  const tracked = inProject(base === 'HEAD'
     ? parseStatus(status).filter((c) => c.status !== '??')
-    : parseNameStatus(safe(() => git(['diff', '--name-status', '--no-renames', base]), '') || '');
-  const untracked = parseStatus(status).filter((c) => c.status === '??');
+    : parseNameStatus(safe(() => git(['diff', '--name-status', '--no-renames', base]), '') || ''));
+  const untracked = inProject(parseStatus(status).filter((c) => c.status === '??'));
   const seen = new Set();
 
   const changes = [...tracked, ...untracked]
@@ -308,7 +316,7 @@ export function fillBashEditsFromGit(story, deps = {}) {
     const claim = claims.get(rel);
     if (!claim) continue; // no turn plausibly caused it; do not invent a link
     const kind = statusKind(code);
-    const edit = buildEdit({ rel, kind, cwd, git, readText, claim, base });
+    const edit = buildEdit({ rel, kind, cwd, git, readText, claim, base, prefix });
     claim.turn.edits.push(edit);
     added++;
 
@@ -332,7 +340,7 @@ function safe(fn, fallback = null, type = 'string') {
   }
 }
 
-function buildEdit({ rel, kind, cwd, git, readText, claim, base = 'HEAD' }) {
+function buildEdit({ rel, kind, cwd, git, readText, claim, base = 'HEAD', prefix = '' }) {
   const file = resolveIn(cwd, rel);
   const command = lastWritingCommand(claim.turn, rel, cwd);
   const edit = {
@@ -362,7 +370,7 @@ function buildEdit({ rel, kind, cwd, git, readText, claim, base = 'HEAD' }) {
     edit.after = after;
     edit.hunks = wholeFileHunk(after, '+');
   } else if (kind === 'delete') {
-    const before = safe(() => git(['show', `${base}:${rel}`]), null);
+    const before = safe(() => git(['show', `${base}:${prefix}${rel}`]), null);
     if (before === null) return edit;
     edit.before = before;
     edit.after = '';
@@ -374,7 +382,7 @@ function buildEdit({ rel, kind, cwd, git, readText, claim, base = 'HEAD' }) {
       return edit;
     }
     edit.hunks = parseUnifiedDiff(diff);
-    edit.before = safe(() => git(['show', `${base}:${rel}`]), null);
+    edit.before = safe(() => git(['show', `${base}:${prefix}${rel}`]), null);
     edit.after = safe(() => readText(file), null);
   }
 

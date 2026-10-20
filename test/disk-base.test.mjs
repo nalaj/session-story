@@ -52,3 +52,14 @@ test('skips a file that cannot be read and one too large to render in full', () 
   const huge = story([edit('e1', { old_string: 'a', new_string: 'A' })]);
   assert.equal(fillBasesFromDisk(huge, () => 'x\n'.repeat(9000)), 0);
 });
+
+test('never reads a file outside the project from disk', () => {
+  const s = story([edit('e1', { file: '/home/me/.zshrc', rel: '../home/me/.zshrc', outside_cwd: true, old_string: 'a', new_string: 'A' })]);
+  let read = false;
+
+  const filled = fillBasesFromDisk(s, () => { read = true; return 'A\n'; });
+
+  assert.equal(filled, 0);
+  assert.equal(read, false);
+  assert.equal(s.turns[0].edits[0].after, null);
+});

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { writeFile, readFile, mkdir, rename, unlink } from 'node:fs/promises';
 import path from 'node:path';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { parseTranscript } from '../src/transcript/parse.mjs';
 import { liveSessionIds } from '../src/transcript/live.mjs';
 import { locateSession, locateSubagents, locateChain, defaultClaudeDir, subagentMetaPath } from '../src/transcript/locate.mjs';
@@ -348,8 +348,12 @@ async function cmdRender(opts) {
   }
 
   if (opts.open) {
-    const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-    exec(`${opener} "${path.resolve(outPath)}"`);
+    // No shell: the path is passed as one argument, never parsed as a command.
+    const target = path.resolve(outPath);
+    const [cmd, args] = process.platform === 'darwin' ? ['open', [target]]
+      : process.platform === 'win32' ? ['cmd', ['/c', 'start', '', target]]
+      : ['xdg-open', [target]];
+    execFile(cmd, args, () => {});
   }
 }
 

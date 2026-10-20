@@ -363,3 +363,22 @@ test('does not invent co-edits when the file was only ever mentioned', () => {
 
   assert.equal(s.turns.flatMap((t) => t.edits).length, 1);
 });
+
+test('in a subfolder of a larger repo, only reads files inside the project, by project-relative path', () => {
+  const s = story([turn(1, [{ id: 'b1', command: 'npx prettier --write .' }])], '/repo/proj');
+  const git = fakeGit({
+    'rev-parse --show-prefix': 'proj/\n',
+    'status --porcelain=v1': ' M other/notes.txt\n M proj/app.py\n',
+    diff: DIFF,
+    'show HEAD:proj/app.py': 'keep\nold\ntail\n',
+  });
+  const read = [];
+
+  fillBashEditsFromGit(s, { git, readText: (f) => { read.push(f); return 'keep\nnew\ntail\n'; }, mtime: () => Date.now() });
+
+  assert.deepEqual(s.turns[0].edits.map((e) => e.rel), ['app.py']);
+  assert.equal(s.turns[0].edits[0].file, '/repo/proj/app.py');
+  assert.equal(s.turns[0].edits[0].before, 'keep\nold\ntail\n');
+  assert.deepEqual(read, ['/repo/proj/app.py']);
+  assert.ok(!git.calls.some((args) => args.join(' ').includes('other/notes.txt')));
+});

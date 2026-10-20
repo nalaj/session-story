@@ -44,6 +44,8 @@ export function fillBasesFromDisk(story, readText) {
 
   for (const [file, edits] of groupByFile(story)) {
     if (edits.length === 0 || hasSnapshot(edits)) continue;
+    // Never read a file outside the project from disk.
+    if (edits.some((e) => e.outside_cwd)) continue;
 
     let text;
     try {
