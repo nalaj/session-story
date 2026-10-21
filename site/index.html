@@ -124,6 +124,295 @@ h1 em::after {
   position: absolute; left: 14px; top: 100%; width: 24px; height: 18px;
   border-left: 2px dashed var(--ink-3); border-bottom: 2px dashed var(--ink-3); border-bottom-left-radius: 10px;
 }
+/* hero demo: a scripted, looping mock of a session turning into its story.
+   The canvas is drawn at a fixed 1040×640 and scaled to the page width. */
+.stage-wrap { margin: 0 0 64px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.stage { position: relative; aspect-ratio: 1040 / 640; }
+.st-canvas {
+  position: absolute; left: 0; top: 0; width: 1040px; height: 640px;
+  transform-origin: 0 0; transform: scale(var(--k, 1)); perspective: 1800px;
+}
+/* the `font` shorthands below reset ligatures, so turn them off per element */
+.stage * { font-variant-ligatures: none !important; }
+.st-tilt {
+  position: absolute; inset: 0; transition: transform .6s cubic-bezier(.2,.7,.2,1), opacity .5s;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+.st-tilt.fade { opacity: 0; }
+.st-win {
+  position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+  box-shadow: 0 40px 80px -40px #3a2c15a0, 0 2px 0 #fff6 inset;
+}
+.st-bar {
+  flex: none; height: 38px; display: flex; align-items: center; gap: 14px; padding: 0 14px;
+  background: var(--paper-2); border-bottom: 1px solid var(--rule);
+  font: 12px/1 "JetBrains Mono", monospace; color: var(--ink-3);
+}
+.st-lights { display: flex; gap: 7px; }
+.st-lights i { width: 11px; height: 11px; border-radius: 50%; background: #ec6a5e; }
+.st-lights i + i { background: #f4bf4f; } .st-lights i + i + i { background: #61c554; }
+.st-ghost { visibility: hidden; }
+.st-title { position: relative; flex: 1; height: 12px; text-align: center; }
+.st-title > span { position: absolute; inset: 0; transition: opacity .4s, transform .4s; white-space: nowrap; }
+.st-title .t-page, [data-on="page"] .st-title .t-term { opacity: 0; transform: translateY(-5px); }
+[data-on="page"] .st-title .t-page { opacity: 1; transform: none; }
+.st-body { position: relative; flex: 1; overflow: hidden; }
+.st-screen { position: absolute; inset: 0; transition: opacity .55s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+
+/* the terminal stays dark in both themes, like a real one */
+.st-term {
+  display: flex; flex-direction: column; padding: 18px 24px 18px;
+  background: var(--code-bg); color: #efe8da; font: 14px/1.55 "JetBrains Mono", monospace;
+}
+[data-on="page"] .st-term { opacity: 0; transform: scale(.97); }
+.tm-head {
+  flex: none; display: flex; gap: 12px; align-items: center; width: max-content;
+  padding: 9px 16px 9px 12px; border: 1px solid #d97757; border-radius: 9px; line-height: 1.35;
+}
+.tm-head b { font-weight: 600; }
+.tm-star { color: #d97757; font-size: 20px; }
+.tm-dim { color: #8f8676; font-size: 12.5px; }
+.tm-lines {
+  flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;
+  padding-top: 6px;
+}
+.tm-l { flex: none; white-space: pre-wrap; animation: tmIn .25s ease both; }
+@keyframes tmIn { from { opacity: 0; transform: translateY(5px); } }
+.tm-you { margin: 12px 0 6px; padding: 5px 12px; border-radius: 6px; background: #ffffff14; }
+.tm-you::before { content: "> "; color: #8f8676; }
+.tm-dot { color: #6cc995; }
+.tm-dot.w { color: #efe8da; }
+.tm-dot.r { color: #f08a7e; }
+.tm-tool b { font-weight: 600; }
+.tm-out { color: #8f8676; margin-left: 12px; }
+.tm-p { color: #6cc995; } .tm-m { color: #f08a7e; }
+.tm-say { color: #d6cfc1; padding-right: 60px; }
+.tm-say code { color: #f0c25a; }
+.tm-sub { color: #a69e8f; padding-left: 22px; }
+.tm-sub em { font-style: normal; color: #efe8da; }
+.tm-think { color: #d97757; }
+.tm-think span { display: inline-block; animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tm-box {
+  position: relative; flex: none; margin-top: 14px; min-height: 44px; display: flex; align-items: center; gap: 10px;
+  padding: 0 14px; border: 1px solid #ffffff30; border-radius: 9px;
+}
+.tm-chev { color: #8f8676; }
+.tm-caret { width: 8px; height: 18px; margin-left: -8px; background: #efe8da; animation: blink 1.05s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.tm-hint {
+  position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); display: flex; gap: 18px; padding: 8px 14px;
+  border-radius: 8px; background: #2a2620; color: #a69e8f; font-size: 13px;
+  opacity: 0; transform: translateY(4px); transition: opacity .2s, transform .2s;
+}
+.tm-hint b { color: #d97757; font-weight: 600; }
+.tm-hint.on { opacity: 1; transform: none; }
+
+/* the caption that asks the question a session leaves behind */
+.st-cap {
+  position: absolute; inset: 0; display: grid; place-content: center; gap: 10px; text-align: center;
+  background: color-mix(in srgb, var(--code-bg) 80%, transparent); backdrop-filter: blur(4px);
+  color: #efe8da; opacity: 0; transition: opacity .5s; pointer-events: none;
+}
+.st-cap b { font: 500 15px/1 "JetBrains Mono", monospace; letter-spacing: .06em; color: #a69e8f; }
+.st-cap span { font: italic 400 52px/1.1 Newsreader, Georgia, serif; }
+.st-cap.on { opacity: 1; }
+.st-cap > * { transition: opacity .6s, transform .6s cubic-bezier(.2,.7,.2,1); }
+.st-cap:not(.on) > * { opacity: 0; transform: translateY(10px); }
+.st-cap.on span { transition-delay: .5s; }
+
+/* the story page, in its own palette */
+.st-page {
+  --s-bg: #f4f5f8; --s-sf: #fff; --s-sf3: #eef0f4; --s-bd: #e1e4ea;
+  --s-tx: #15181e; --s-tx2: #586170; --s-tx3: #737b89; --s-ac: #4c6ef5;
+  --s-add: #1a7a42; --s-addbg: #e6f6ec; --s-del: #c9363f; --s-delbg: #fbe9eb;
+  display: flex; flex-direction: column; background: var(--s-bg); color: var(--s-tx);
+  font: 13px/1.45 Figtree, ui-sans-serif, sans-serif;
+  opacity: 0; transform: scale(1.03);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .st-page {
+    --s-bg: #0e1014; --s-sf: #151820; --s-sf3: #21262f; --s-bd: #262c37;
+    --s-tx: #e7e9ee; --s-tx2: #a3abb8; --s-tx3: #808896; --s-ac: #7b93ff;
+    --s-add: #4cc27a; --s-addbg: #13291c; --s-del: #f07178; --s-delbg: #2d171a;
+  }
+}
+:root[data-theme="dark"] .st-page {
+  --s-bg: #0e1014; --s-sf: #151820; --s-sf3: #21262f; --s-bd: #262c37;
+  --s-tx: #e7e9ee; --s-tx2: #a3abb8; --s-tx3: #808896; --s-ac: #7b93ff;
+  --s-add: #4cc27a; --s-addbg: #13291c; --s-del: #f07178; --s-delbg: #2d171a;
+}
+[data-on="page"] .st-page { opacity: 1; transform: none; }
+.st-page code, .sp-diff, .sp-file, .sp-tree { font-family: "JetBrains Mono", monospace; }
+.st-page code { font-size: .9em; }
+.sp-p, .st-page .p { color: var(--s-add); } .sp-m, .st-page .m { color: var(--s-del); }
+.st-page em { font-style: normal; }
+.sp-head {
+  flex: none; display: flex; justify-content: space-between; align-items: center; gap: 24px;
+  padding: 16px 24px; background: var(--s-sf); border-bottom: 1px solid var(--s-bd);
+}
+.sp-kick { display: flex; gap: 10px; align-items: center; font: 600 11px/1 Figtree, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--s-ac); }
+.sp-kick em { padding: 4px 8px; border-radius: 999px; background: color-mix(in srgb, var(--s-ac) 14%, transparent); font-size: 10px; }
+.sp-title { margin-top: 8px; font: 600 25px/1.1 Figtree, sans-serif; letter-spacing: -.01em; }
+.sp-stats { display: flex; gap: 8px; }
+.sp-stats > div, .sp-tiles > div { padding: 9px 12px; min-width: 84px; border: 1px solid var(--s-bd); border-radius: 10px; background: var(--s-sf); }
+.sp-stats b, .sp-tiles b { display: block; font: 600 19px/1.15 Figtree, sans-serif; color: var(--s-tx); }
+.sp-stats .sp-p b, .sp-tiles .sp-p b { color: var(--s-add); } .sp-stats .sp-m b, .sp-tiles .sp-m b { color: var(--s-del); }
+.sp-stats span, .sp-tiles span { font-size: 11.5px; color: var(--s-tx3); }
+.sp-tabs {
+  flex: none; display: flex; align-items: center; gap: 18px; padding: 9px 24px;
+  background: var(--s-sf); border-bottom: 1px solid var(--s-bd);
+}
+.sp-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--s-sf3); }
+.sp-seg > span {
+  display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 8px;
+  font-weight: 600; color: var(--s-tx2); transition: background .25s, color .25s, box-shadow .25s;
+}
+.sp-seg svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.sp-seg i { font-style: normal; font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, var(--s-tx3) 18%, transparent); }
+.sp-seg > span.on { background: var(--s-sf); color: var(--s-ac); box-shadow: 0 1px 3px #0000001f; }
+.sp-hint { color: var(--s-tx3); }
+.sp-panes { position: relative; flex: 1; }
+.sp-pane { position: absolute; inset: 0; padding: 16px 24px; opacity: 0; transition: opacity .35s; }
+.sp-pane.on { opacity: 1; }
+
+.sp-review { display: grid; grid-template-columns: 316px 1fr; gap: 26px; }
+.sp-cards { display: grid; align-content: start; gap: 10px; }
+.sp-card {
+  padding: 10px 12px; border: 1px solid var(--s-bd); border-radius: 12px; background: var(--s-sf);
+  transition: border-color .3s, box-shadow .3s, opacity .5s, transform .5s cubic-bezier(.2,.7,.2,1);
+}
+.sp-review:not(.in) .sp-card { opacity: 0; transform: translateY(12px); }
+.sp-card:nth-child(2) { transition-delay: 0s, 0s, .12s, .12s; }
+.sp-card:nth-child(3) { transition-delay: 0s, 0s, .24s, .24s; }
+.sp-card.sel { border-color: var(--s-ac); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s-ac) 18%, transparent); }
+.sp-c-top { display: flex; align-items: center; gap: 8px; font: 11px/1 "JetBrains Mono", monospace; color: var(--s-tx3); }
+.sp-num { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--s-sf3); color: var(--s-tx2); font: 600 11px/1 Figtree, sans-serif; transition: background .3s, color .3s; }
+.sel .sp-num { background: var(--s-ac); color: #fff; }
+.sp-q { margin: 7px 0 5px; padding: 5px 9px; border-left: 3px solid var(--s-ac); background: var(--s-sf3); border-radius: 0 6px 6px 0; font-size: 13px; line-height: 1.35; }
+.sp-sum { font-size: 12px; color: var(--s-tx2); }
+.sp-bar { display: flex; align-items: center; gap: 2px; margin-top: 6px; font: 10.5px/1 "JetBrains Mono", monospace; color: var(--s-tx3); }
+.sp-bar i { height: 4px; border-radius: 2px; background: var(--s-add); width: calc(var(--a) * 4px); }
+.sp-bar i + i { background: var(--s-del); width: calc(var(--d) * 4px); }
+.sp-bar span { margin-left: 8px; }
+.sp-detail { position: relative; min-width: 0; border: 1px solid var(--s-bd); border-radius: 12px; background: var(--s-sf); overflow: hidden; }
+.sp-turn { position: absolute; inset: 0; padding: 12px 16px; opacity: 0; transform: translateX(10px); transition: opacity .35s, transform .45s cubic-bezier(.2,.7,.2,1); }
+.sp-turn.on { opacity: 1; transform: none; }
+.sp-t-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--s-tx3); }
+.sp-t-h b { font-size: 14px; color: var(--s-tx); }
+.sp-t-q { margin: 8px 0 12px; padding: 7px 10px; border-left: 3px solid var(--s-ac); background: var(--s-sf3); border-radius: 0 6px 6px 0; font-size: 13.5px; }
+.sp-file { display: flex; gap: 8px; align-items: center; padding: 7px 10px; border: 1px solid var(--s-bd); border-bottom: 0; border-radius: 8px 8px 0 0; background: var(--s-sf3); font-size: 12px; font-weight: 600; }
+.sp-file .n { color: var(--s-ac); font-weight: 400; }
+.sp-tag { margin-left: auto; font: 400 11px/1 Figtree, sans-serif; color: var(--s-tx3); }
+.sp-diff { border: 1px solid var(--s-bd); border-radius: 0 0 8px 8px; overflow: hidden; font-size: 11.5px; line-height: 1.75; }
+.sp-diff div { padding: 0 10px; white-space: pre; overflow: hidden; text-overflow: ellipsis; transition: box-shadow .3s; }
+.sp-diff .a { background: var(--s-addbg); color: var(--s-add); }
+.sp-diff .d { background: var(--s-delbg); color: var(--s-del); }
+.sp-diff .c { color: var(--s-tx3); }
+.sp-diff .lit { box-shadow: inset 3px 0 0 currentColor; }
+.sp-more { margin-top: 10px; font-size: 12px; color: var(--s-tx3); }
+.sp-tie { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.sp-tie path { fill: none; stroke: var(--s-ac); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.sp-tie circle { fill: var(--s-ac); opacity: 0; transition: opacity .2s; }
+.sp-tie.draw path { stroke-dashoffset: 0; transition: stroke-dashoffset .7s cubic-bezier(.4,0,.2,1); }
+.sp-tie.draw circle { opacity: 1; }
+.sp-tie.draw circle + circle { transition-delay: .6s; }
+
+.sp-files { display: grid; grid-template-columns: 236px 1fr; gap: 20px; }
+.sp-tree { align-self: start; padding: 6px; border: 1px solid var(--s-bd); border-radius: 12px; background: var(--s-sf); font-size: 12px; }
+.sp-tree div { display: flex; gap: 6px; padding: 7px 9px; border-radius: 7px; }
+.sp-tree span { flex: 1; }
+.sp-tree .on { background: color-mix(in srgb, var(--s-ac) 12%, transparent); color: var(--s-ac); font-weight: 600; }
+.sp-files .sp-detail { padding: 12px 16px; align-self: start; }
+.sp-files .sp-diff div { opacity: 1; transition: opacity .3s; }
+.sp-files:not(.in) .sp-diff div { opacity: 0; }
+.sp-files .sp-diff div:nth-child(n+4) { transition-delay: .15s; }
+.sp-files .sp-diff div:nth-child(n+7) { transition-delay: .3s; }
+.sp-files .sp-diff div:nth-child(n+10) { transition-delay: .45s; }
+
+.sp-story { padding: 22px 120px 16px 64px; }
+.sp-story p {
+  position: relative; margin: 0 0 16px; font: 400 18px/1.55 Newsreader, Georgia, serif; color: var(--s-tx);
+  transition: opacity .6s, transform .6s cubic-bezier(.2,.7,.2,1);
+}
+.sp-story b { position: absolute; left: -38px; top: 3px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--s-ac); color: #fff; font: 600 11px/1 Figtree, sans-serif; }
+.sp-story code { font-size: 14px; color: var(--s-ac); }
+.sp-story:not(.in) p { opacity: 0; transform: translateY(10px); }
+.sp-story p:nth-child(2) { transition-delay: .5s; }
+.sp-story p:nth-child(3) { transition-delay: 1s; }
+
+.sp-report { display: grid; align-content: start; gap: 14px; }
+.sp-outcome { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, #e8b23a 16%, var(--s-sf)); border: 1px solid color-mix(in srgb, #e8b23a 45%, var(--s-bd)); font-size: 14px; }
+.sp-outcome em { padding: 4px 9px; border-radius: 999px; background: #e8b23a; color: #1d1a16; font: 600 11px/1 Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.sp-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.sp-tiles > div { padding: 12px 14px; }
+.sp-tiles b { font-size: 26px; }
+.sp-dec { padding: 12px 14px; border: 1px solid var(--s-bd); border-radius: 12px; background: var(--s-sf); }
+.sp-dec b { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--s-tx3); }
+.sp-dec p { margin: 6px 0 0; padding-left: 14px; position: relative; color: var(--s-tx2); }
+.sp-dec p::before { content: ""; position: absolute; left: 0; top: .6em; width: 5px; height: 5px; border-radius: 50%; background: var(--s-ac); }
+.sp-report > * { transition: opacity .5s, transform .5s cubic-bezier(.2,.7,.2,1); }
+.sp-report:not(.in) > * { opacity: 0; transform: translateY(10px); }
+.sp-report > :nth-child(2) { transition-delay: .15s; }
+.sp-report > :nth-child(3) { transition-delay: .3s; }
+
+/* closing card */
+.st-end {
+  position: absolute; inset: 0; display: grid; place-content: center; gap: 6px; text-align: center; border-radius: 14px;
+  background: color-mix(in srgb, var(--paper) 86%, transparent); backdrop-filter: blur(8px);
+  opacity: 0; transition: opacity .6s; pointer-events: none;
+}
+.st-end.on { opacity: 1; }
+.st-end p { margin: 0; transition: opacity .7s, transform .7s cubic-bezier(.2,.7,.2,1); }
+.st-end:not(.on) p { opacity: 0; transform: translateY(12px); }
+.st-end-a { font: 400 40px/1.15 Newsreader, Georgia, serif; color: var(--ink-3); }
+.st-end-b { font: 400 54px/1.15 Newsreader, Georgia, serif; color: var(--ink); transition-delay: .7s !important; }
+.st-end-b em { position: relative; font-style: italic; }
+.st-end-b em::after {
+  content: ""; position: absolute; left: -2px; right: -2px; bottom: .08em; height: .32em; z-index: -1;
+  background: var(--mark); opacity: .55; transform: scaleX(0); transform-origin: left; transition: transform .8s 1.3s cubic-bezier(.2,.7,.2,1);
+}
+.st-end.on .st-end-b em::after { transform: none; }
+.st-end-c { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 26px !important; transition-delay: 1.6s !important; }
+.st-end-c code { padding: 12px 20px; border-radius: 10px; background: var(--code-bg); color: var(--code-ink); font-size: 18px; }
+.st-end-c span { font-size: 15px; color: var(--ink-2); }
+
+/* the pointer */
+.st-ptr {
+  position: absolute; left: 0; top: 0; width: 26px; height: 26px; z-index: 5; opacity: 0;
+  transform: translate(var(--x, 760px), var(--y, 520px));
+  transition: transform .85s cubic-bezier(.45,.05,.25,1), opacity .3s;
+}
+.st-ptr.on { opacity: 1; }
+.st-ptr svg { position: relative; z-index: 1; width: 26px; height: 26px; fill: #1d1a16; stroke: #fff; stroke-width: 1.4; stroke-linejoin: round; filter: drop-shadow(0 2px 3px #0005); }
+.st-ptr i { position: absolute; left: -11px; top: -11px; width: 30px; height: 30px; border-radius: 50%; background: var(--mark); opacity: 0; }
+.st-ptr.tap i { animation: tap .5s ease-out; }
+@keyframes tap { from { opacity: .7; transform: scale(.3); } to { opacity: 0; transform: scale(1.4); } }
+
+/* fast-forward: jump to a scene with no motion */
+.stage.ff *, .stage.ff *::before, .stage.ff *::after { transition: none !important; animation-duration: 0s !important; animation-delay: 0s !important; }
+
+/* scene steps under the stage */
+.st-steps { display: flex; gap: 10px; margin-top: 16px; }
+.st-steps button {
+  position: relative; flex: 1; min-width: 0; padding: 10px 0 0; border: 0; border-top: 2px solid var(--rule);
+  background: none; color: var(--ink-3); font: 500 13px/1.3 Figtree, sans-serif; text-align: left; cursor: pointer;
+}
+.st-steps button::before { content: ""; position: absolute; left: 0; top: -2px; height: 2px; width: 0; background: var(--ink); }
+.st-steps button.done::before { width: 100%; }
+.st-steps button.run::before { animation: fill var(--dur, 5s) linear forwards; }
+.stage-wrap.paused .st-steps button::before { animation-play-state: paused; }
+@keyframes fill { to { width: 100%; } }
+.st-steps button[aria-current="step"], .st-steps button:hover { color: var(--ink); }
+.st-steps span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* record mode (scripts/record-demo.mjs): only the stage, nothing around it */
+html.rec body { background: var(--paper); }
+html.rec .wrap { max-width: none; padding: 40px; }
+html.rec .bar, html.rec main > :not(.stage-wrap), html.rec footer, html.rec .st-steps { display: none; }
+html.rec .stage-wrap { margin: 0; }
 .hero > * { min-width: 0; }
 .hero > * { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
 .hero > :nth-child(2) { animation-delay: .15s; }
@@ -210,6 +499,8 @@ footer a { color: var(--ink-2); }
   .step { border-right: 0; border-bottom: 1px solid var(--rule); }
   .step:last-child { border-bottom: 0; }
   .sheet + .sheet { margin-left: 18px; }
+  .st-steps button:not([aria-current]) span { visibility: hidden; }
+  .st-steps button[aria-current] { flex: 3; }
   .cmd { flex-direction: column; }
   .cmd pre { white-space: pre-wrap; word-break: break-all; }
   h1 em { white-space: normal; }
@@ -269,6 +560,172 @@ footer a { color: var(--ink-2); }
         </div>
       </div>
     </div>
+
+    <figure class="stage-wrap">
+      <figcaption class="sr">A short animation: three prompts in Claude Code edit five files and fail one test on the way. Running /session-story turns the session into one page where each prompt is tied to the edits it caused, with Review, Diff, Story and Report views.</figcaption>
+      <div class="stage" id="stage" aria-hidden="true">
+        <div class="st-canvas">
+          <div class="st-tilt">
+            <div class="st-win" data-on="term">
+              <div class="st-bar">
+                <span class="st-lights"><i></i><i></i><i></i></span>
+                <span class="st-title"><span class="t-term">~/todo-app — claude</span><span class="t-page">.session-stories/2026-10-14-demo-7f3-due-dates-for-todos.html</span></span>
+                <span class="st-lights st-ghost"><i></i><i></i><i></i></span>
+              </div>
+              <div class="st-body">
+                <div class="st-screen st-term">
+                  <div class="tm-head"><span class="tm-star">✻</span><span><b>Claude Code</b><br><span class="tm-dim">~/todo-app · feat/due-dates</span></span></div>
+                  <div class="tm-lines"></div>
+                  <div class="tm-box">
+                    <div class="tm-hint"><b>/session-story</b><span>Turn this session into one page: every prompt tied to the edits it caused</span></div>
+                    <span class="tm-chev">&gt;</span><span class="tm-typed"></span><i class="tm-caret"></i>
+                  </div>
+                </div>
+
+                <div class="st-screen st-page">
+                  <div class="sp-head">
+                    <div>
+                      <div class="sp-kick"><span>Session story</span><em>Partial</em></div>
+                      <div class="sp-title">Due dates for todos</div>
+                    </div>
+                    <div class="sp-stats">
+                      <div><b data-n="3">3</b><span>turns</span></div>
+                      <div><b data-n="5">5</b><span>files</span></div>
+                      <div class="sp-p"><b data-n="52" data-pre="+">+52</b><span>added</span></div>
+                      <div class="sp-m"><b data-n="14" data-pre="−">−14</b><span>removed</span></div>
+                      <div><b data-n="3.2" data-dec="1" data-suf="k">3.2k</b><span>output tokens</span></div>
+                      <div><b data-n="0.83" data-dec="2" data-pre="$">$0.83</b><span>est. API cost</span></div>
+                    </div>
+                  </div>
+                  <div class="sp-tabs">
+                    <span class="sp-seg">
+                      <span data-v="review"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8"/></svg>Review <i>3</i></span>
+                      <span data-v="diff"><svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M8 2.5v11"/></svg>Diff <i>5</i></span>
+                      <span data-v="story"><svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M6 2.5v11"/></svg>Story</span>
+                      <span data-v="report"><svg viewBox="0 0 16 16"><path d="M4 2h6l3 3v9H4zM6 8h5M6 11h5"/></svg>Report</span>
+                    </span>
+                    <span class="sp-hint"></span>
+                  </div>
+                  <div class="sp-panes">
+                    <div class="sp-pane sp-review" data-pane="review" data-hint="Each prompt you gave, next to the code changes it led to.">
+                      <div class="sp-cards">
+                        <div class="sp-card"><div class="sp-c-top"><span class="sp-num">1</span>09:12 · 1m 4s</div><div class="sp-q">Add an optional due date to todos, and show overdue ones in red.</div><div class="sp-sum">Added optional due dates and an overdue check, with tests.</div><div class="sp-bar" style="--a:30;--d:11"><i></i><i></i><span>+30 −11</span></div></div>
+                        <div class="sp-card"><div class="sp-c-top"><span class="sp-num">2</span>09:13 · 31s</div><div class="sp-q">Sort the list so overdue items come first, then by due date.</div><div class="sp-sum">Sorted the list: overdue first, then by due date.</div><div class="sp-bar" style="--a:13;--d:2"><i></i><i></i><span>+13 −2</span></div></div>
+                        <div class="sp-card"><div class="sp-c-top"><span class="sp-num">3</span>09:13 · 9s</div><div class="sp-q">Document due dates in the README.</div><div class="sp-sum">Documented due dates in the README.</div><div class="sp-bar" style="--a:9;--d:1"><i></i><i></i><span>+9 −1</span></div></div>
+                      </div>
+                      <div class="sp-detail">
+                        <div class="sp-turn">
+                          <div class="sp-t-h"><b>Turn 1</b><span>4 edits · 3 files <em class="p">+30</em> <em class="m">−11</em></span></div>
+                          <div class="sp-t-q">Add an optional due date to todos, and show overdue ones in red.</div>
+                          <div class="sp-file">src/todo.js <em class="p">+11</em> <em class="m">−6</em></div>
+                          <div class="sp-diff">
+                            <div class="d">-export function createTodo(title) {</div>
+                            <div class="a">+export function createTodo(title, { due = null } = {}) {</div>
+                            <div class="c">   return {</div>
+                            <div class="c">     title: title.trim(),</div>
+                            <div class="c">     done: false,</div>
+                            <div class="a">+    due: due ? new Date(due).toISOString().slice(0, 10) : null,</div>
+                            <div class="c">   };</div>
+                            <div class="c"> }</div>
+                            <div class="a">+export function isOverdue(todo, today = new Date()) {</div>
+                            <div class="a">+  return !todo.done &amp;&amp; todo.due !== null &amp;&amp; todo.due &lt; …;</div>
+                          </div>
+                          <div class="sp-more">also src/render.js +6 −4 · test/todo.test.js +13 −1</div>
+                        </div>
+                        <div class="sp-turn">
+                          <div class="sp-t-h"><b>Turn 2</b><span>3 edits · 2 files <em class="p">+13</em> <em class="m">−2</em></span></div>
+                          <div class="sp-t-q">Sort the list so overdue items come first, then by due date.</div>
+                          <div class="sp-file">src/sort.js <em class="p">+10</em> <em class="n">new</em></div>
+                          <div class="sp-diff">
+                            <div class="a">+import { isOverdue } from './todo.js';</div>
+                            <div class="a">+</div>
+                            <div class="a">+/** Overdue first, then by due date (undated last), then by title. */</div>
+                            <div class="a">+export function sortTodos(todos, today = new Date()) {</div>
+                            <div class="a">+  return [...todos].sort((a, b) =&gt;</div>
+                            <div class="a">+    Number(isOverdue(b, today)) - Number(isOverdue(a, today)) ||</div>
+                            <div class="a">+    (a.due ?? '9999-12-31').localeCompare(b.due ?? '9999-12-31') ||</div>
+                            <div class="a">+    a.title.localeCompare(b.title)</div>
+                            <div class="a">+  );</div>
+                            <div class="a">+}</div>
+                          </div>
+                          <div class="sp-more">also src/render.js +3 −2</div>
+                        </div>
+                      </div>
+                      <svg class="sp-tie"><path d="" pathLength="1"/><circle r="4"/><circle r="4"/></svg>
+                    </div>
+
+                    <div class="sp-pane sp-files" data-pane="diff" data-hint="Every file the session touched, the whole change.">
+                      <div class="sp-tree">
+                        <div><span>README.md</span><em class="p">+9</em><em class="m">−1</em></div>
+                        <div class="on"><span>src/render.js</span><em class="p">+9</em><em class="m">−6</em></div>
+                        <div><span>src/sort.js</span><em class="p">+10</em><em class="m">−0</em></div>
+                        <div><span>src/todo.js</span><em class="p">+11</em><em class="m">−6</em></div>
+                        <div><span>test/todo.test.js</span><em class="p">+13</em><em class="m">−1</em></div>
+                      </div>
+                      <div class="sp-detail">
+                        <div class="sp-file">src/render.js <em class="p">+9</em> <em class="m">−6</em> <span class="sp-tag">turns 1, 2</span></div>
+                        <div class="sp-diff">
+                          <div class="c"> import { escape } from './html.js';</div>
+                          <div class="a">+import { isOverdue } from './todo.js';</div>
+                          <div class="a">+import { sortTodos } from './sort.js';</div>
+                          <div class="c"> </div>
+                          <div class="d">-export function renderTodo(todo) {</div>
+                          <div class="d">-  const cls = todo.done ? 'todo done' : 'todo';</div>
+                          <div class="a">+export function renderTodo(todo, today) {</div>
+                          <div class="a">+  const cls = ['todo', todo.done &amp;&amp; 'done', isOverdue(todo, today) &amp;&amp; 'overdue']</div>
+                          <div class="a">+    .filter(Boolean).join(' ');</div>
+                          <div class="d">-export function renderList(todos) {</div>
+                          <div class="a">+export function renderList(todos, today = new Date()) {</div>
+                          <div class="a">+  return `&lt;ul&gt;${sortTodos(todos, today).map((t) =&gt; renderTodo(t, today)).join('')}&lt;/ul&gt;`;</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="sp-pane sp-story" data-pane="story" data-hint="What happened, in plain language.">
+                      <p><b>1</b>You asked for optional due dates, with overdue todos in red. Claude gave todos a <code>due</code> field and an <code>isOverdue()</code> check, and marked late items in <code>renderTodo</code>. The first test run failed: an old assertion compared the whole todo object. It narrowed that test and added two more, and all four pass.</p>
+                      <p><b>2</b>Overdue first, then by date: a new <code>sortTodos()</code> in <code>src/sort.js</code>, which sorts a copy so callers keep their order. Sorting has no test yet.</p>
+                      <p><b>3</b>A “Due dates” section in the README, with an example and the sort order.</p>
+                    </div>
+
+                    <div class="sp-pane sp-report" data-pane="report" data-hint="What happened, not just what changed.">
+                      <div class="sp-outcome"><em>Partial</em><span>Works and is tested, except <code>sortTodos()</code>, and <code>.overdue</code> has no CSS rule yet.</span></div>
+                      <div class="sp-tiles">
+                        <div><b data-n="14">14</b><span>tool calls</span></div>
+                        <div class="sp-m"><b data-n="1">1</b><span>failed test run, fixed</span></div>
+                        <div class="sp-p"><b data-n="4">4</b><span>tests passing</span></div>
+                        <div><b data-n="8">8</b><span>edits in 5 files</span></div>
+                      </div>
+                      <div class="sp-dec">
+                        <b>Decisions</b>
+                        <p>Stored due dates as YYYY-MM-DD strings, so comparing them is a plain string comparison.</p>
+                        <p>Sorted a copy in sortTodos() instead of sorting the caller’s array in place.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="st-cap"><b>3 prompts · 5 files · 1 failed test</b><span>Which prompt changed what?</span></div>
+              </div>
+            </div>
+
+            <div class="st-end">
+              <p class="st-end-a">Git tells you what changed.</p>
+              <p class="st-end-b">This tells you <em>what happened</em>.</p>
+              <p class="st-end-c"><code>/session-story</code><span>An open source agent skill for Claude Code</span></p>
+            </div>
+
+            <div class="st-ptr"><svg viewBox="0 0 24 24"><path d="M5 3l14 8.2-6.3 1.4 3.6 6.6-2.6 1.4-3.6-6.6L5 18.5z"/></svg><i></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="st-steps" id="st-steps">
+        <button type="button"><span>Prompt</span></button>
+        <button type="button"><span>Claude edits</span></button>
+        <button type="button"><span>/session-story</span></button>
+        <button type="button"><span>Prompt → edits</span></button>
+        <button type="button"><span>Four views</span></button>
+      </div>
+    </figure>
 
     <section id="install">
       <div class="sec-h">
@@ -433,6 +890,306 @@ footer a { color: var(--ink-2); }
     root.dataset.theme = dark ? 'light' : 'dark';
     try { localStorage.setItem('ss-theme', root.dataset.theme); } catch {}
   });
+})();
+</script>
+<script>
+// Hero demo: plays the synthetic demo session (scripts/demo-session.mjs) as a
+// scripted loop — prompts and edits in a terminal, /session-story, then the
+// story page. It runs only while visible, and steps under it jump to a scene.
+(() => {
+  const stage = document.getElementById('stage');
+  if (!stage) return;
+  const wrap = stage.closest('.stage-wrap');
+  const canvas = stage.querySelector('.st-canvas');
+  const $ = (s) => canvas.querySelector(s);
+  const $$ = (s) => [...canvas.querySelectorAll(s)];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const record = new URLSearchParams(location.search).has('record');
+  if (record) document.documentElement.classList.add('rec');
+
+  new ResizeObserver(() => canvas.style.setProperty('--k', stage.clientWidth / 1040)).observe(stage);
+
+  // Sleeps wait while the stage is off screen or the tab is hidden, and throw
+  // STOP once a newer run has replaced theirs. In fast-forward they return at once.
+  const STOP = Symbol('stop');
+  let ctx = { alive: false, ff: false };
+  let inView = false;
+  let waiters = [];
+  const visible = () => inView && !document.hidden;
+  function sleep(ms) {
+    const c = ctx;
+    return (c.ff ? Promise.resolve() : new Promise((r) => setTimeout(r, ms)))
+      .then(() => (c.ff || visible() ? null : new Promise((r) => waiters.push(r))))
+      .then(() => { if (!c.alive) throw STOP; });
+  }
+
+  const win = $('.st-win');
+  const tilt = $('.st-tilt');
+  const lines = $('.tm-lines');
+  const typed = $('.tm-typed');
+  const hint = $('.tm-hint');
+  const ptr = $('.st-ptr');
+  const tie = $('.sp-tie');
+  const cards = $$('.sp-card');
+  const turns = $$('.sp-review .sp-turn');
+
+  // Position in canvas pixels; offsets ignore the scale and tilt transforms.
+  function pos(el) {
+    let x = 0, y = 0;
+    for (let n = el; n && n !== canvas; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+    return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+  }
+  async function tap(el) {
+    const p = pos(el);
+    ptr.classList.add('on');
+    ptr.style.setProperty('--x', `${p.x + p.w / 2}px`);
+    ptr.style.setProperty('--y', `${p.y + p.h / 2}px`);
+    await sleep(900);
+    ptr.classList.remove('tap');
+    void ptr.offsetWidth;
+    ptr.classList.add('tap');
+    await sleep(180);
+  }
+
+  function line(html, cls) {
+    const d = document.createElement('div');
+    d.className = `tm-l ${cls}`;
+    d.innerHTML = html;
+    lines.append(d);
+    return d;
+  }
+  const tool = (name, arg, out = '', dot = '') =>
+    line(`<span class="tm-dot ${dot}">⏺</span> <b>${name}</b>(${arg})${out && `<span class="tm-out">${out}</span>`}`, 'tm-tool');
+  const diff = (a, d) => `<span class="tm-p">+${a}</span> <span class="tm-m">−${d}</span>`;
+  const say = (html) => line(`<span class="tm-dot w">⏺</span> ${html}`, 'tm-say');
+  async function type(text, ms = 32) {
+    if (ctx.ff) { typed.textContent = text; return; }
+    for (let i = 1; i <= text.length; i++) {
+      typed.textContent = text.slice(0, i);
+      hint.classList.toggle('on', text[0] === '/');
+      await sleep(ms + (text[i - 1] === ' ' ? 40 : Math.random() * 30));
+    }
+  }
+  async function send(think = 900) {
+    await sleep(380);
+    line('', 'tm-you').textContent = typed.textContent;
+    typed.textContent = '';
+    hint.classList.remove('on');
+    const t = line('<span>✻</span> Thinking…', 'tm-think');
+    await sleep(think);
+    t.remove();
+  }
+
+  function count(scope) {
+    const c = ctx;
+    for (const el of scope.querySelectorAll('[data-n]')) {
+      const n = +el.dataset.n, dec = +(el.dataset.dec || 0);
+      const fmt = (v) => `${el.dataset.pre || ''}${v.toFixed(dec)}${el.dataset.suf || ''}`;
+      if (c.ff) { el.textContent = fmt(n); continue; }
+      const t0 = performance.now();
+      const step = (t) => {
+        if (!c.alive) return;
+        const k = Math.min(1, (t - t0) / 900);
+        el.textContent = fmt(n * (1 - (1 - k) ** 3));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+  }
+  function view(v) {
+    for (const t of $$('.sp-seg > span')) t.classList.toggle('on', t.dataset.v === v);
+    for (const p of $$('.sp-pane')) p.classList.toggle('on', p.dataset.pane === v);
+    $('.sp-hint').textContent = $(`.sp-pane[data-pane="${v}"]`).dataset.hint;
+  }
+  async function open(v) {
+    await tap($(`.sp-seg > [data-v="${v}"]`));
+    view(v);
+    const pane = $(`.sp-pane[data-pane="${v}"]`);
+    await sleep(250);
+    pane.classList.add('in');
+    count(pane);
+  }
+  function select(i) {
+    cards.forEach((c, j) => c.classList.toggle('sel', j === i));
+    turns.forEach((t, j) => t.classList.toggle('on', j === i));
+    for (const d of $$('.sp-review .sp-diff div')) d.classList.remove('lit');
+    tie.classList.remove('draw');
+  }
+  // A curve from the selected turn's card to its first file in the detail panel.
+  function drawTie(i) {
+    const o = pos($('.sp-review')), a = pos(cards[i]), b = pos(turns[i].querySelector('.sp-file'));
+    const x1 = a.x + a.w - o.x, y1 = a.y + 34 - o.y, x2 = b.x - o.x, y2 = b.y + b.h / 2 - o.y, mx = (x1 + x2) / 2;
+    tie.querySelector('path').setAttribute('d', `M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`);
+    const [c1, c2] = tie.querySelectorAll('circle');
+    c1.setAttribute('cx', x1); c1.setAttribute('cy', y1);
+    c2.setAttribute('cx', x2); c2.setAttribute('cy', y2);
+    void tie.getBoundingClientRect();
+    tie.classList.add('draw');
+  }
+  async function light(turn) {
+    for (const d of turn.querySelectorAll('.sp-diff .a, .sp-diff .d')) { d.classList.add('lit'); await sleep(110); }
+  }
+
+  function reset() {
+    lines.replaceChildren();
+    typed.textContent = '';
+    hint.classList.remove('on');
+    $('.st-cap').classList.remove('on');
+    $('.st-end').classList.remove('on');
+    win.dataset.on = 'term';
+    for (const p of $$('.sp-pane')) p.classList.remove('in');
+    view('review');
+    select(-1);
+    ptr.classList.remove('on', 'tap');
+    ptr.style.removeProperty('--x');
+    ptr.style.removeProperty('--y');
+  }
+
+  const scenes = [
+    async () => {
+      await sleep(600);
+      await type('Add an optional due date to todos, and show overdue ones in red.');
+      await send(1100);
+      tool('Read', 'src/todo.js'); await sleep(260);
+      tool('Read', 'src/render.js'); await sleep(420);
+      tool('Update', 'src/todo.js', diff(11, 6)); await sleep(560);
+      tool('Update', 'src/render.js', diff(6, 4)); await sleep(560);
+      tool('Bash', 'npm test', '<span class="tm-m">✗ 1 of 2 failed</span>', 'r'); await sleep(900);
+      tool('Update', 'test/todo.test.js', diff(13, 1)); await sleep(560);
+      tool('Bash', 'npm test', '<span class="tm-p">✓ 4 passed</span>'); await sleep(500);
+      say('Todos take an optional <code>due</code> date, and overdue ones get an <code>overdue</code> class. All 4 tests pass.');
+      await sleep(1400);
+    },
+    async () => {
+      await type('Sort the list so overdue items come first, then by due date.', 24);
+      await send(700);
+      tool('Write', 'src/sort.js', '<span class="tm-p">+10</span>'); await sleep(450);
+      tool('Update', 'src/render.js', diff(3, 2)); await sleep(450);
+      tool('Bash', 'npm test', '<span class="tm-p">✓ 4 passed</span>'); await sleep(700);
+      await type('Document due dates in the README.', 24);
+      await send(600);
+      tool('Update', 'README.md', diff(9, 1)); await sleep(500);
+      say('Added a “Due dates” section with an example.');
+      await sleep(900);
+      $('.st-cap').classList.add('on');
+      await sleep(3000);
+      $('.st-cap').classList.remove('on');
+      await sleep(500);
+    },
+    async () => {
+      await type('/session-story', 85);
+      await send(800);
+      tool('Skill', 'session-story'); await sleep(500);
+      line('⎿ Extracted <em>3 turns</em> · <em>5 files</em> · <em>8 edits</em>', 'tm-sub'); await sleep(450);
+      line('⎿ Wrote a one-line summary for each turn', 'tm-sub'); await sleep(450);
+      line('⎿ Opened <em>.session-stories/2026-10-14-demo-7f3-due-dates-for-todos.html</em>', 'tm-sub');
+      await sleep(1200);
+      win.dataset.on = 'page';
+      count($('.sp-head'));
+      await sleep(500);
+    },
+    async () => {
+      $('.sp-review').classList.add('in');
+      await sleep(1000);
+      await tap(cards[0]);
+      select(0);
+      await sleep(350);
+      drawTie(0);
+      await light(turns[0]);
+      await sleep(1600);
+      await tap(cards[1]);
+      select(1);
+      await sleep(350);
+      drawTie(1);
+      await light(turns[1]);
+      await sleep(1500);
+    },
+    async () => {
+      await open('diff'); await sleep(2000);
+      await open('story'); await sleep(2900);
+      await open('report'); await sleep(2300);
+      ptr.classList.remove('on');
+      $('.st-end').classList.add('on');
+      await sleep(4200);
+    },
+  ];
+  // Rough scene lengths, only for the progress bars under the stage.
+  const DUR = [12600, 13200, 6500, 8200, 15400];
+
+  const steps = [...document.querySelectorAll('#st-steps button')];
+  function mark(i, held) {
+    steps.forEach((b, j) => {
+      b.classList.toggle('done', j < i || (held && j === i));
+      b.classList.remove('run');
+      if (j === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    });
+    if (held) return;
+    void steps[i].offsetWidth;
+    steps[i].style.setProperty('--dur', `${DUR[i]}ms`);
+    steps[i].classList.add('run');
+  }
+
+  // Plays from scene `from`, fast-forwarding the ones before it. With `hold`
+  // it stops on the end state of that scene instead (reduced motion).
+  async function play(from, hold) {
+    ctx.alive = false;
+    const c = (ctx = { alive: true, ff: true });
+    stage.classList.add('ff');
+    reset();
+    try {
+      for (let i = 0; i < from + (hold ? 1 : 0); i++) await scenes[i]();
+      if (hold) {
+        if (from === 3) { select(0); drawTie(0); }
+        $('.st-end').classList.remove('on');
+        ptr.classList.remove('on');
+        mark(from, true);
+        return;
+      }
+      void stage.offsetWidth;
+      stage.classList.remove('ff');
+      c.ff = false;
+      for (let i = from; ; i++) {
+        if (i === scenes.length) {
+          dispatchEvent(new Event('demo:loop'));
+          tilt.classList.add('fade');
+          await sleep(600);
+          reset();
+          tilt.classList.remove('fade');
+          i = 0;
+        }
+        mark(i);
+        await scenes[i]();
+      }
+    } catch (e) {
+      if (e !== STOP) throw e;
+    }
+  }
+
+  steps.forEach((b, i) => b.addEventListener('click', () => play(i, reduced)));
+
+  let started = false;
+  const start = () => { if (!started) { started = true; play(reduced ? 3 : 0, reduced); } };
+  function flush() {
+    wrap.classList.toggle('paused', !visible());
+    if (!visible()) return;
+    waiters.splice(0).forEach((r) => r());
+    if (!record) start();
+  }
+  new IntersectionObserver((e) => { inView = e.some((x) => x.isIntersecting); flush(); }, { threshold: 0.25 }).observe(stage);
+  document.addEventListener('visibilitychange', flush);
+  if (record) window.demoStart = start;
+
+  if (!reduced && !record && matchMedia('(hover: hover)').matches) {
+    stage.addEventListener('pointermove', (e) => {
+      const r = stage.getBoundingClientRect();
+      tilt.style.setProperty('--ry', `${((e.clientX - r.left) / r.width - 0.5) * 3}deg`);
+      tilt.style.setProperty('--rx', `${-((e.clientY - r.top) / r.height - 0.5) * 3}deg`);
+    });
+    stage.addEventListener('pointerleave', () => {
+      tilt.style.setProperty('--rx', '0deg');
+      tilt.style.setProperty('--ry', '0deg');
+    });
+  }
 })();
 </script>
 </body>

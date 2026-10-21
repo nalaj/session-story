@@ -18,7 +18,8 @@
   "scripts": {
     "test": "node --test",
     "smoke": "node scripts/package-smoke.mjs",
-    "build:site": "node scripts/build-site.mjs"
+    "build:site": "node scripts/build-site.mjs",
+    "record:demo": "node scripts/record-demo.mjs"
   },
   "engines": {
     "node": ">=18.18"
