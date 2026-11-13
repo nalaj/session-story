@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderPage } from '../session-story/src/render/template.mjs';
+import { renderPage } from '../cli/src/render/template.mjs';
 import { richStory, longStory } from './fixtures/story-fixture.mjs';
 
 // Capability checklist: each existing user-visible feature of the story page

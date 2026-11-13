@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { liveSessionIds } from '../session-story/src/transcript/live.mjs';
+import { liveSessionIds } from '../cli/src/transcript/live.mjs';
 
 test('liveSessionIds keeps only sessions whose process is alive', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'story-live-'));

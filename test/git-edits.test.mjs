@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fillBashEditsFromGit, sessionStartCommit } from '../session-story/src/ir/git-edits.mjs';
+import { fillBashEditsFromGit, sessionStartCommit } from '../cli/src/ir/git-edits.mjs';
 
 const DIFF = [
   'diff --git a/app.py b/app.py',

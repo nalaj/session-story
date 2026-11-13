@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeBashCommand } from '../session-story/src/transcript/bash-edits.mjs';
+import { analyzeBashCommand } from '../cli/src/transcript/bash-edits.mjs';
 
 test('a heredoc script that rewrites a file marks its paths as writes', () => {
   // The real shape auto-mode sessions produce: the path is bound to a

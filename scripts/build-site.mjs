@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { renderDemo } from './demo-session.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'session-story', 'bin', 'story.mjs');
+const bin = path.join(root, 'cli', 'bin', 'story.mjs');
 const outDir = path.resolve(process.argv[2] ?? path.join(root, '_site'));
 
 await fs.rm(outDir, { recursive: true, force: true });

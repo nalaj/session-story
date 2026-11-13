@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { icon, ICON_NAMES } from '../session-story/src/render/icons.mjs';
+import { icon, ICON_NAMES } from '../cli/src/render/icons.mjs';
 
 test('icon returns an inline, decorative SVG for every known name', () => {
   for (const name of ICON_NAMES) {

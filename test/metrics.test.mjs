@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeMetrics, normalizeCommand, countRetries, validationState } from '../session-story/src/ir/metrics.mjs';
+import { computeMetrics, normalizeCommand, countRetries, validationState } from '../cli/src/ir/metrics.mjs';
 
 function run(command, status, category = 'test') {
   return { command, status, category };

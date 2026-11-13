@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const run = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, '..');
-const binPath = path.join(repoRoot, 'session-story', 'bin', 'story.mjs');
+const binPath = path.join(repoRoot, 'cli', 'bin', 'story.mjs');
 
 test('extract -> validate -> render produces a story.json and story.html matching the fixture transcript', async () => {
   const workdir = await mkdtemp(path.join(tmpdir(), 'story-cli-'));

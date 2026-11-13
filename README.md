@@ -18,7 +18,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/Agent-Skill-7C3AED?style=flat-square" alt="Agent Skill" />
   <img src="https://img.shields.io/badge/node-%3E%3D18.18-339933?style=flat-square" alt="Node 18.18 or later" />
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.5.1-0891b2?style=flat-square" alt="Version 0.5.1" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.6.0-0891b2?style=flat-square" alt="Version 0.5.1" /></a>
 </p>
 
 ## Session Story
@@ -54,7 +54,7 @@ For the current repository only, drop `--global`:
 npx -y skills add nalaj/session-story --skill session-story --agent claude-code --copy --yes
 ```
 
-This uses the open [`skills`](https://github.com/vercel-labs/skills) CLI. It copies only the [`session-story/`](session-story) folder into your agent's skills directory, so nothing goes to npm and there's nothing else to install. The installer needs Node.js 22.20+ (the `skills` CLI's own requirement); the skill itself runs on Node.js 18.18+ with zero npm runtime dependencies. To update, run the same command again. To remove it: `npx skills remove session-story`.
+This uses the open [`skills`](https://github.com/vercel-labs/skills) CLI. It copies only the [`session-story/`](session-story) folder (the skill's instructions) into your agent's skills directory. When the skill runs, it fetches the matching version of the [`session-story`](https://www.npmjs.com/package/session-story) CLI from npm through `npx`. The installer needs Node.js 22.20+ (the `skills` CLI's own requirement); the CLI runs on Node.js 18.18+ with zero npm runtime dependencies. To update, run the same command again. To remove it: `npx skills remove session-story`.
 
 On older Node, this fetches Node 22 for the install only and changes nothing else (tested on macOS; for a lasting fix, upgrade Node, e.g. `nvm install 22`):
 
@@ -69,9 +69,9 @@ npx -y -p node@22 -p skills -- skills add nalaj/session-story --skill session-st
 /plugin install session-story@session-story
 ```
 
-On Claude Code 2.1.275 or later, one line does both: `/plugin install session-story --marketplace nalaj/session-story`. This needs no `npx`, and Claude Code installs only the `session-story/` folder. As a plugin, the skill's command is `/session-story:session-story`. To update, run `/plugin marketplace update session-story`.
+On Claude Code 2.1.275 or later, one line does both: `/plugin install session-story --marketplace nalaj/session-story`. Claude Code installs only the `session-story/` folder; the skill fetches the CLI with `npx` when it runs. As a plugin, the skill's command is `/session-story:session-story`. To update, run `/plugin marketplace update session-story`.
 
-Or clone this repo and run `node session-story/bin/story.mjs` directly.
+Or run the CLI yourself with `npx session-story`, or from a clone with `node cli/bin/story.mjs`.
 
 ### 2. Generate a story
 
@@ -88,7 +88,7 @@ Claude extracts the current session, writes one-sentence summaries per turn, and
 **Older sessions work too.** The story is built from the transcript Claude Code keeps on disk, not from the model's context, so a session from days ago is as good as the current one. Ask "make a session story for session `<session-id>`", or from the command line:
 
 ```bash
-node session-story/bin/story.mjs extract --session <session-id> -o story.json
+npx session-story extract --session <session-id> -o story.json
 ```
 
 Session ids are the transcript file names in `~/.claude/projects/<slug>/` (the slug is the project path with `/` replaced by `-`), and `/resume` lists them too. Pass the full id, and `--cwd <dir>` when you are not in the project directory. Claude Code deletes transcripts after `cleanupPeriodDays` (30 by default), and edits made through the shell are recovered against today's git tree, so for an old session they can be misattributed if the files changed since.
@@ -168,15 +168,15 @@ Two toggles in the nav apply across the views, and persist across visits:
 | **Validate**  | Checks the IR's shape and, in `--strict` mode, that every turn, the session, and the report have their required fields filled in.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | **Render**    | Compiles the IR into one self-contained HTML file with inline CSS and JS — no external requests, no template step left undone.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
-Command-line equivalent of the full flow (from a clone; an installed skill lives at `~/.claude/skills/session-story/`):
+Command-line equivalent of the full flow (from a clone, use `node cli/bin/story.mjs` in place of `npx session-story`):
 
 ```bash
-node session-story/bin/story.mjs extract [--session <id>|--latest] [--cwd <dir>] [--no-chain] -o story.json
-node session-story/bin/story.mjs validate story.json [--strict]
-node session-story/bin/story.mjs render story.json [--library <dir>|-o story.html|--no-library] [--open]
-node session-story/bin/story.mjs export story.json [--template pr|handoff] [-o out.md] [--all-files]
-node session-story/bin/story.mjs delete <session-id|id-prefix|file>... [--library <dir>]
-node session-story/bin/story.mjs delete --all [--library <dir>]
+npx session-story extract [--session <id>|--latest] [--cwd <dir>] [--no-chain] -o story.json
+npx session-story validate story.json [--strict]
+npx session-story render story.json [--library <dir>|-o story.html|--no-library] [--open]
+npx session-story export story.json [--template pr|handoff] [-o out.md] [--all-files]
+npx session-story delete <session-id|id-prefix|file>... [--library <dir>]
+npx session-story delete --all [--library <dir>]
 ```
 
 Run without any Claude-written summaries, `render` falls back to the first line of each prompt as the turn's label.
@@ -206,8 +206,9 @@ A hosted viewer and WYSIWYG editing are intentionally outside the current scope.
 
 | Path                  | What it is                                                                                     |
 | --------------------- | ---------------------------------------------------------------------------------------------- |
-| `session-story/`      | **The skill**: exactly what `npx skills add` installs (`SKILL.md`, `bin/`, `src/`, `schemas/`) |
-| `test/`               | `node --test` suite for the skill                                                              |
+| `session-story/`      | **The skill and plugin**: exactly what `npx skills add` and `/plugin install` install (`SKILL.md`, `schemas/`, `.claude-plugin/`). Markdown, JSON and images only |
+| `cli/`                | **The CLI**: the `session-story` npm package (`bin/`, `src/`) that the skill runs through `npx` |
+| `test/`               | `node --test` suite for the CLI                                                                |
 | `scripts/`            | Package smoke test, site build, and the synthetic demo session                                 |
 | `site/`               | GitHub Pages start page; `npm run build:site` adds the live example into `_site/`              |
 | `examples/story.html` | Standalone example page, regenerated by `build:site`                                           |

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fillBasesFromDisk } from '../session-story/src/ir/disk-base.mjs';
+import { fillBasesFromDisk } from '../cli/src/ir/disk-base.mjs';
 
 function story(edits) {
   return { turns: [{ index: 1, edits }] };

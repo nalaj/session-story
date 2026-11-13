@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import { CLIENT_SOURCE, hunksHtml, spliceRows, fullTableHtml } from '../session-story/src/render/hunk-html.mjs';
-import { renderHunk } from '../session-story/src/render/diff.mjs';
-import { renderFullFile } from '../session-story/src/render/full-view.mjs';
+import { CLIENT_SOURCE, hunksHtml, spliceRows, fullTableHtml } from '../cli/src/render/hunk-html.mjs';
+import { renderHunk } from '../cli/src/render/diff.mjs';
+import { renderFullFile } from '../cli/src/render/full-view.mjs';
 
 // The page runs CLIENT_SOURCE on its own, so load it the same way: a fresh
 // context with nothing else defined.

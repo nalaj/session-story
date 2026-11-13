@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, utimes } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { slugify, locateSession, locateChain, subagentMetaPath } from '../session-story/src/transcript/locate.mjs';
+import { slugify, locateSession, locateChain, subagentMetaPath } from '../cli/src/transcript/locate.mjs';
 
 test('slugify turns an absolute cwd into the ~/.claude/projects folder slug', () => {
   assert.equal(slugify('/Users/nalaj/Development/AI/metafyl'), '-Users-nalaj-Development-AI-metafyl');
@@ -81,7 +81,7 @@ test('locateSubagents returns a map of agentId -> transcript path for a session'
   await writeFile(path.join(subDir, 'agent-ad8ff631be07e1ecc.jsonl'), '{}\n');
   await writeFile(path.join(subDir, 'agent-a857f2cbeaf39bf9e.jsonl'), '{}\n');
 
-  const { locateSubagents } = await import('../session-story/src/transcript/locate.mjs');
+  const { locateSubagents } = await import('../cli/src/transcript/locate.mjs');
   const result = await locateSubagents({ claudeDir, cwd, sessionId: 'sess-1' });
 
   assert.deepEqual(Object.keys(result).sort(), ['a857f2cbeaf39bf9e', 'ad8ff631be07e1ecc']);
@@ -93,7 +93,7 @@ test('locateSubagents returns an empty map when the session has no subagents fol
   const cwd = '/proj';
   await mkdir(path.join(claudeDir, slugify(cwd)), { recursive: true });
 
-  const { locateSubagents } = await import('../session-story/src/transcript/locate.mjs');
+  const { locateSubagents } = await import('../cli/src/transcript/locate.mjs');
   const result = await locateSubagents({ claudeDir, cwd, sessionId: 'sess-1' });
 
   assert.deepEqual(result, {});

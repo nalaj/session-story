@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderMarkdown, mdCell, mdCode, firstLine, TEMPLATES } from '../session-story/src/render/markdown.mjs';
+import { renderMarkdown, mdCell, mdCode, firstLine, TEMPLATES } from '../cli/src/render/markdown.mjs';
 
 function sampleStory(overrides = {}) {
   return {

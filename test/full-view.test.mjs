@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spliceFullFile, renderFullFile, FULL_VIEW_MAX_LINES } from '../session-story/src/render/full-view.mjs';
+import { spliceFullFile, renderFullFile, FULL_VIEW_MAX_LINES } from '../cli/src/render/full-view.mjs';
 
 test('spliceFullFile surrounds each hunk with the file lines it never touched', () => {
   const rows = spliceFullFile('l1\nl2\nl3\nl4\nl5\n', [
@@ -56,7 +56,7 @@ test('renderFullFile escapes the untouched file content it copies in', () => {
 });
 
 test('a full view built from the file as it stands on disk is marked approximate', async () => {
-  const { renderViews } = await import('../session-story/src/render/diff.mjs');
+  const { renderViews } = await import('../cli/src/render/diff.mjs');
 
   const html = renderViews('d1', { base: 'b1' }, true);
 
@@ -65,14 +65,14 @@ test('a full view built from the file as it stands on disk is marked approximate
 });
 
 test('spliceFullFile refuses a base whose sheer size would bloat the page', async () => {
-  const { FULL_VIEW_MAX_CHARS } = await import('../session-story/src/render/full-view.mjs');
+  const { FULL_VIEW_MAX_CHARS } = await import('../cli/src/render/full-view.mjs');
 
   // few lines, but enormous: line caps alone would let this through
   assert.equal(spliceFullFile(`${'x'.repeat(FULL_VIEW_MAX_CHARS + 1)}\n`, []), null);
 });
 
 test('spliceFullFile refuses a result too large for the page, even when the base is empty', async () => {
-  const { FULL_VIEW_MAX_CHARS } = await import('../session-story/src/render/full-view.mjs');
+  const { FULL_VIEW_MAX_CHARS } = await import('../cli/src/render/full-view.mjs');
 
   // A created file starts from '' so only the result can show its size.
   const huge = Array.from({ length: FULL_VIEW_MAX_LINES + 1 }, () => '+x');
@@ -82,7 +82,7 @@ test('spliceFullFile refuses a result too large for the page, even when the base
 });
 
 test('renderViews leaves code out of the markup: placeholders name the diff and base in the story data', async () => {
-  const { renderViews } = await import('../session-story/src/render/diff.mjs');
+  const { renderViews } = await import('../cli/src/render/diff.mjs');
 
   const html = renderViews('d1', { base: 'b"1' });
 
@@ -93,7 +93,7 @@ test('renderViews leaves code out of the markup: placeholders name the diff and 
 });
 
 test('renderViews says why a full view is missing, and Story gets the hunks pane only', async () => {
-  const { renderViews } = await import('../session-story/src/render/diff.mjs');
+  const { renderViews } = await import('../cli/src/render/diff.mjs');
 
   assert.match(renderViews('d1', ''), /did not record its contents/);
   assert.match(renderViews('d1', 'budget'), /left out to keep the page small/i);
@@ -103,7 +103,7 @@ test('renderViews says why a full view is missing, and Story gets the hunks pane
 });
 
 test('renderViews shows a note instead of a full-view placeholder when told to skip', async () => {
-  const { renderViews } = await import('../session-story/src/render/diff.mjs');
+  const { renderViews } = await import('../cli/src/render/diff.mjs');
 
   const html = renderViews('d1', 'skip');
 

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { parseTranscript } from '../session-story/src/transcript/parse.mjs';
+import { parseTranscript } from '../cli/src/transcript/parse.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join(__dirname, 'fixtures', 'simple-session.jsonl');

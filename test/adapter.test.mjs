@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildStory } from '../session-story/src/transcript/claude-code.mjs';
+import { buildStory } from '../cli/src/transcript/claude-code.mjs';
 
 test('extracts one turn per real user prompt, in order, with empty edits when no tool calls follow', () => {
   const records = [

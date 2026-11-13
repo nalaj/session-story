@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeHtml, renderHunk, renderEdit } from '../session-story/src/render/diff.mjs';
-import { contentKey } from '../session-story/src/render/story-data.mjs';
+import { escapeHtml, renderHunk, renderEdit } from '../cli/src/render/diff.mjs';
+import { contentKey } from '../cli/src/render/story-data.mjs';
 
 test('escapeHtml escapes <, >, &, and quotes', () => {
   assert.equal(escapeHtml('<script>a && b</script> "q" \'s\''), '&lt;script&gt;a &amp;&amp; b&lt;/script&gt; &quot;q&quot; &#39;s&#39;');
@@ -36,7 +36,7 @@ test('renderHunk escapes HTML-significant characters in code content', () => {
 });
 
 test('renderEdit wraps a file header and all of its hunks, marking creates and subagent edits', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = {
     rel: 'src/a.ts', kind: 'update', by_subagent: null, result: 'ok',
     hunks: [{ oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-a', '+b'] }],
@@ -51,7 +51,7 @@ test('renderEdit wraps a file header and all of its hunks, marking creates and s
 });
 
 test('renderEdit shows a "no result" note for an edit with an unknown result', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = { rel: 'src/a.ts', kind: null, by_subagent: null, result: 'unknown', hunks: [], stats: { added: 0, removed: 0 } };
 
   const html = renderEdit(edit);
@@ -60,7 +60,7 @@ test('renderEdit shows a "no result" note for an edit with an unknown result', a
 });
 
 test('renderEdit shows the error message for an edit that failed', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = { rel: 'src/a.ts', kind: null, by_subagent: null, result: 'error', error: 'File does not exist.', hunks: [], stats: { added: 0, removed: 0 } };
 
   const html = renderEdit(edit);
@@ -70,7 +70,7 @@ test('renderEdit shows the error message for an edit that failed', async () => {
 });
 
 test('renderEdit points both panes at the story data when a full view is planned', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = {
     id: 'e1', rel: 'a.txt', kind: 'update', by_subagent: null, result: 'ok',
     hunks: [{ oldStart: 2, oldLines: 1, newStart: 2, newLines: 1, lines: ['-b', '+B'] }],
@@ -85,7 +85,7 @@ test('renderEdit points both panes at the story data when a full view is planned
 });
 
 test('renderEdit says so when no pre-edit text could be reconstructed for the full view', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = { id: 'e1', rel: 'a.txt', kind: 'update', by_subagent: null, result: 'ok', hunks: [], stats: { added: 0, removed: 0 } };
 
   const html = renderEdit(edit);
@@ -95,14 +95,14 @@ test('renderEdit says so when no pre-edit text could be reconstructed for the fu
 });
 
 test('renderEdit marks an edit whose file lives outside the project', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = { id: 'e1', rel: '../../tmp/s.json', outside_cwd: true, kind: 'update', by_subagent: null, result: 'ok', hunks: [], stats: { added: 1, removed: 0 } };
 
   assert.match(renderEdit(edit), /<div class="edit" data-file="\.\.\/\.\.\/tmp\/s\.json" data-outside="1">/);
 });
 
 test('renderEdit tags every edit with its file so review-lens chips can scroll to it', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const base = { id: 'e1', rel: 'src/a.ts', kind: 'update', by_subagent: null, hunks: [], stats: { added: 0, removed: 0 } };
 
   assert.match(renderEdit({ ...base, result: 'ok' }), /<div class="edit" data-file="src\/a\.ts"/);
@@ -111,7 +111,7 @@ test('renderEdit tags every edit with its file so review-lens chips can scroll t
 });
 
 test('renderEdit escapes quotes in the file key attribute', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = { id: 'e1', rel: 'a"><img src=x>.ts', kind: 'update', by_subagent: null, result: 'ok', hunks: [], stats: { added: 0, removed: 0 } };
 
   const html = renderEdit(edit);
@@ -164,7 +164,7 @@ test('a deleted file is badged as deleted', () => {
 });
 
 test('renderEdit shows a shell diff shared with another turn, and says it is shared', async () => {
-  const { renderEdit } = await import('../session-story/src/render/diff.mjs');
+  const { renderEdit } = await import('../cli/src/render/diff.mjs');
   const edit = {
     rel: 'web/src/Composer.tsx', kind: 'update', tool: 'Bash', result: 'ok',
     hunks: [{ oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-a', '+b'] }],

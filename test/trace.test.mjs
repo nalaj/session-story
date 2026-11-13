@@ -4,7 +4,7 @@ import {
   msBetween, newEvent, finishEvent, resultStatus, eventSummary, turnDuration, sortEvents,
   newUsageAcc, noteUsage, usageTotals, pickCostState, parseTaskNotifications,
   CACHE_BREAK_TOKENS, IDLE_GAP_MS, activeMs,
-} from '../session-story/src/ir/trace.mjs';
+} from '../cli/src/ir/trace.mjs';
 
 test('msBetween returns the positive difference in ms, or null when either timestamp is missing or unparseable', () => {
   assert.equal(msBetween('2026-10-08T10:00:01.000Z', '2026-10-08T10:00:09.500Z'), 8500);

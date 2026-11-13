@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chainFileStates, buildFileBases } from '../session-story/src/ir/file-state.mjs';
+import { chainFileStates, buildFileBases } from '../cli/src/ir/file-state.mjs';
 
 function edit(id, extra = {}) {
   return {

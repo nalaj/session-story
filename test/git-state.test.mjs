@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fillGitState } from '../session-story/src/ir/git-state.mjs';
+import { fillGitState } from '../cli/src/ir/git-state.mjs';
 
 /** A git double driven by a table of exact argv matches. */
 function fakeGit(table) {

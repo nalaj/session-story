@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderReportLens } from '../session-story/src/render/report.mjs';
+import { renderReportLens } from '../cli/src/render/report.mjs';
 
 function sampleStory(overrides = {}) {
   return {
@@ -172,7 +172,7 @@ test('a failed test run shows its output once, under Tests & validation, and its
 });
 
 test('a long command shows its opening and says how much was left out', async () => {
-  const { COMMAND_SHOWN_MAX } = await import('../session-story/src/render/report.mjs');
+  const { COMMAND_SHOWN_MAX } = await import('../cli/src/render/report.mjs');
   const story = sampleStory();
   const command = `python3 - <<'EOF'\n${'x'.repeat(COMMAND_SHOWN_MAX + 500)}\nEOF`;
   story.turns[0].bash = [
@@ -186,7 +186,7 @@ test('a long command shows its opening and says how much was left out', async ()
 });
 
 test('a long command list shows the first rows and carries the rest inert behind "Show all"', async () => {
-  const { COMMANDS_SHOWN } = await import('../session-story/src/render/report.mjs');
+  const { COMMANDS_SHOWN } = await import('../cli/src/render/report.mjs');
   const story = sampleStory();
   const total = COMMANDS_SHOWN + 50;
   story.turns[0].bash = Array.from({ length: total }, (_, i) => (

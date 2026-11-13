@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { relativeTo, resolveIn, isOutsideRel } from '../session-story/src/transcript/paths.mjs';
+import { relativeTo, resolveIn, isOutsideRel } from '../cli/src/transcript/paths.mjs';
 
 test('relativeTo uses the session cwd\'s path style, never the host\'s, and always "/"', () => {
   assert.equal(relativeTo('/proj/src/Panel.tsx', '/proj'), 'src/Panel.tsx');

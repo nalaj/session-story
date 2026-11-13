@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyCommand, parseExitCode, parseCommitShas, isRejection } from '../session-story/src/ir/commands.mjs';
+import { classifyCommand, parseExitCode, parseCommitShas, isRejection } from '../cli/src/ir/commands.mjs';
 
 test('classifyCommand recognizes common test runners', () => {
   assert.equal(classifyCommand('npm test'), 'test');

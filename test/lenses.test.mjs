@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderHeader, formatRange, renderReviewLens, renderStoryLens, renderTurnUsage } from '../session-story/src/render/lenses.mjs';
+import { renderHeader, formatRange, renderReviewLens, renderStoryLens, renderTurnUsage } from '../cli/src/render/lenses.mjs';
 
 function sampleStory(overrides = {}) {
   return {
@@ -53,7 +53,7 @@ test('renderHeader falls back to a truncated first prompt as the title when none
 });
 
 test('renderReviewLens lists one timeline entry per turn with prompt, summary and file count', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'Add a title prop', summary: 'Added title prop.', edits: [
@@ -75,7 +75,7 @@ test('renderReviewLens lists one timeline entry per turn with prompt, summary an
 });
 
 test('renderReviewLens counts distinct files on the left instead of listing them, following the project toggle', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'Add a title prop', summary: '', edits: [
@@ -100,7 +100,7 @@ test('renderReviewLens counts distinct files on the left instead of listing them
 });
 
 test('renderReviewLens gives a multi-file turn panel a file filter: "All changes" plus one button per file', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'Two files', summary: '', edits: [
@@ -138,7 +138,7 @@ test('renderReviewLens gives a multi-file turn panel a file filter: "All changes
 });
 
 test("renderReviewLens escapes quotes in an edit's file key", async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [{ index: 1, id: 'u1', at: null, prompt: 'p', summary: '', edits: [
       { id: 'e1', tool: 'Edit', file: '/p/a', rel: 'a"><img src=x>.ts', kind: 'update', by_subagent: null, result: 'ok', hunks: [], stats: { added: 0, removed: 0 } },
@@ -153,7 +153,7 @@ test("renderReviewLens escapes quotes in an edit's file key", async () => {
 });
 
 test('renderReviewLens omits the summary paragraph when a turn has no summary yet, but still shows the prompt', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [{ index: 1, id: 'u1', at: null, prompt: 'Investigate the flaky test', summary: '', edits: [] }],
   });
@@ -165,7 +165,7 @@ test('renderReviewLens omits the summary paragraph when a turn has no summary ye
 });
 
 test('renderDiffLens lists a file tree entry and a panel per file, with each hunk tagged by its turn', async () => {
-  const { renderDiffLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderDiffLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', prompt: 'Add a title prop', summary: 'Added title.', edits: [
@@ -195,7 +195,7 @@ test('renderDiffLens lists a file tree entry and a panel per file, with each hun
 });
 
 test('renderStoryLens renders one card per turn with prompt, summary, file count, and collapsed code', async () => {
-  const { renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderStoryLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [{ index: 1, id: 'u1', prompt: 'Add a title prop', summary: 'Added a title prop to Panel.', edits: [
       { id: 'e1', tool: 'Edit', file: '/p/src/Panel.tsx', rel: 'src/Panel.tsx', kind: 'update', by_subagent: null, result: 'ok',
@@ -233,7 +233,7 @@ test('renderHeader renders the counts as stat tiles with icons, a decorative mot
 });
 
 test('renderReviewLens gives each timeline item an added/removed activity bar scaled to the busiest turn', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'a', summary: 'A.', edits: [{ id: 'e1', tool: 'Edit', file: '/p/a', rel: 'a', kind: 'update', by_subagent: null, result: 'ok', hunks: [], stats: { added: 4, removed: 0 } }] },
@@ -250,7 +250,7 @@ test('renderReviewLens gives each timeline item an added/removed activity bar sc
 });
 
 test('renderStoryLens cards carry the same activity bar as the review timeline', async () => {
-  const { renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderStoryLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [{ index: 1, id: 'u1', prompt: 'a', summary: 'A.', edits: [{ id: 'e1', tool: 'Edit', file: '/p/a', rel: 'a', kind: 'update', by_subagent: null, result: 'ok', hunks: [], stats: { added: 2, removed: 2 } }] }],
   });
@@ -303,7 +303,7 @@ test('renderHeader skips combined_into shares in its project-only counts, as the
 });
 
 test('renderReviewLens marks out-of-project edits, and explains a turn left empty by the filter', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
 
   const html = renderReviewLens(outsideStory());
 
@@ -314,7 +314,7 @@ test('renderReviewLens marks out-of-project edits, and explains a turn left empt
 });
 
 test('renderDiffLens marks the out-of-project file in the tree and its panel', async () => {
-  const { renderDiffLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderDiffLens } = await import('../cli/src/render/lenses.mjs');
 
   const html = renderDiffLens(outsideStory());
 
@@ -323,7 +323,7 @@ test('renderDiffLens marks the out-of-project file in the tree and its panel', a
 });
 
 test('renderReviewLens points each edit at its reconstructed pre-edit text so the full-file view can render', async () => {
-  const { renderReviewLens, storyDataFor } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens, storyDataFor } = await import('../cli/src/render/lenses.mjs');
   const story = outsideStory();
 
   const html = renderReviewLens(story);
@@ -335,7 +335,7 @@ test('renderReviewLens points each edit at its reconstructed pre-edit text so th
 });
 
 test('renderStoryLens keeps its collapsed code as hunks only, so the full-file toggle cannot empty it', async () => {
-  const { renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderStoryLens } = await import('../cli/src/render/lenses.mjs');
 
   const html = renderStoryLens(outsideStory());
 
@@ -344,7 +344,7 @@ test('renderStoryLens keeps its collapsed code as hunks only, so the full-file t
 });
 
 test('renderReviewLens and renderDiffLens skip splicing the full file for out-of-project edits, to save the page budget for project files', async () => {
-  const { renderReviewLens, renderDiffLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens, renderDiffLens } = await import('../cli/src/render/lenses.mjs');
   const story = outsideStory();
 
   const reviewHtml = renderReviewLens(story);
@@ -476,21 +476,21 @@ test('renderHeader leaves out usage tiles it has no numbers for', () => {
 });
 
 test('renderReviewLens stamps each timeline item and turn panel with when the prompt was sent', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const html = renderReviewLens(sampleStory());
   assert.match(html, /<time class="turn-time" datetime="2026-09-10T10:00:00\.000Z">2026-09-10 10:00 UTC<\/time>/);
   assert.equal(html.match(/class="turn-time"/g).length, 2);
 });
 
 test('renderReviewLens omits the timestamp for a turn without one', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory();
   story.turns[0].at = null;
   assert.doesNotMatch(renderReviewLens(story), /turn-time/);
 });
 
 test('renderStoryLens offers no "Show code" for a turn whose edits carry no diff', async () => {
-  const { renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderStoryLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [{ index: 1, id: 'u1', prompt: 'p', summary: 'S.', edits: [
       { id: 'e1', tool: 'Edit', file: '/p/a.ts', rel: 'a.ts', kind: 'update', by_subagent: null, result: 'error', error: 'old_string not found', hunks: [], stats: { added: 0, removed: 0 } },
@@ -502,7 +502,7 @@ test('renderStoryLens offers no "Show code" for a turn whose edits carry no diff
 });
 
 test('renderStoryLens shows only edits with a diff under "Show code"', async () => {
-  const { renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderStoryLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [{ index: 1, id: 'u1', prompt: 'p', summary: 'S.', edits: [
       { id: 'e1', tool: 'Edit', file: '/p/a.ts', rel: 'a.ts', kind: 'update', by_subagent: null, result: 'error', error: 'old_string not found', hunks: [], stats: { added: 0, removed: 0 } },
@@ -519,7 +519,7 @@ test('renderStoryLens shows only edits with a diff under "Show code"', async () 
 });
 
 test('renderStoryLens hides "Show code" with the project filter when every change is outside the project', async () => {
-  const { renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderStoryLens } = await import('../cli/src/render/lenses.mjs');
   const story = outsideStory();
   const hunks = [{ oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-x', '+y'] }];
   for (const turn of story.turns) turn.edits = turn.edits.map((e) => (e.outside_cwd ? { ...e, hunks } : e));
@@ -533,7 +533,7 @@ test('renderStoryLens hides "Show code" with the project filter when every chang
 });
 
 test("renderReviewLens shows Claude's output above the diffs, folding all but the final reply", async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'p1', summary: '', edits: [], replies: [
@@ -564,7 +564,7 @@ test("renderReviewLens shows Claude's output above the diffs, folding all but th
 });
 
 test("Review and Story show the turn's answer as Claude's output and fold every original reply", async () => {
-  const { renderReviewLens, renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens, renderStoryLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'p1', summary: 's1', answer: 'Fixed <it>; tests pass.', edits: [], replies: [
@@ -594,7 +594,7 @@ test("Review and Story show the turn's answer as Claude's output and fold every 
 });
 
 test("renderStoryLens shows Claude's output on a card, and nothing extra when a turn has no replies", async () => {
-  const { renderStoryLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderStoryLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'p1', summary: 's1', edits: [], replies: [
@@ -615,7 +615,7 @@ test("renderStoryLens shows Claude's output on a card, and nothing extra when a 
 });
 
 test("renderReviewLens repeats the turn's prompt at the top of its panel, before Claude's output", async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'Fix <the> bug', summary: '', edits: [], replies: [{ at: null, text: 'Fixed' }] },
@@ -631,7 +631,7 @@ test("renderReviewLens repeats the turn's prompt at the top of its panel, before
 });
 
 test('Review and Diff point at the same full-file base, which the story data carries once', async () => {
-  const { renderReviewLens, renderDiffLens, storyDataFor } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens, renderDiffLens, storyDataFor } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [
       { index: 1, id: 'u1', at: null, prompt: 'p', summary: '', edits: [
@@ -653,7 +653,7 @@ test('Review and Diff point at the same full-file base, which the story data car
 });
 
 test('combined shell edits that repeat one git diff point at a single story-data entry', async () => {
-  const { renderReviewLens, storyDataFor } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens, storyDataFor } = await import('../cli/src/render/lenses.mjs');
   const hunks = [{ oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-a', '+b'] }];
   const shell = (id, turn, extra) => ({ id, tool: 'Bash', file: '/p/a.ts', rel: 'a.ts', kind: 'update', result: 'ok',
     hunks, stats: { added: 1, removed: 1 }, attribution: 'command', ...extra });
@@ -673,7 +673,7 @@ test('combined shell edits that repeat one git diff point at a single story-data
 });
 
 test('a combined shell edit shows the full file from the turn it is shared with', async () => {
-  const { renderReviewLens, storyDataFor } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens, storyDataFor } = await import('../cli/src/render/lenses.mjs');
   const hunks = [{ oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-a', '+b'] }];
   const shell = (id, extra) => ({ id, tool: 'Bash', file: '/p/a.ts', rel: 'a.ts', kind: 'update', result: 'ok',
     hunks, stats: { added: 1, removed: 1 }, attribution: 'command', before: null, after: null, ...extra });
@@ -695,7 +695,7 @@ test('a combined shell edit shows the full file from the turn it is shared with'
 });
 
 test('a combined shell edit still says where the diff is counted when no turn has the file', async () => {
-  const { renderReviewLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderReviewLens } = await import('../cli/src/render/lenses.mjs');
   const hunks = [{ oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-a', '+b'] }];
   const shell = (id, extra) => ({ id, tool: 'Bash', file: '/p/a.ts', rel: 'a.ts', kind: 'update', result: 'ok',
     hunks, stats: { added: 1, removed: 1 }, attribution: 'command', before: null, after: null, ...extra });
@@ -710,7 +710,7 @@ test('a combined shell edit still says where the diff is counted when no turn ha
 });
 
 test('renderDiffLens puts a name filter above the file tree', async () => {
-  const { renderDiffLens } = await import('../session-story/src/render/lenses.mjs');
+  const { renderDiffLens } = await import('../cli/src/render/lenses.mjs');
   const story = sampleStory({
     turns: [{ index: 1, id: 'u1', prompt: 'Edit', edits: [
       { id: 'e1', tool: 'Edit', file: '/p/a.js', rel: 'a.js', kind: 'update', by_subagent: null, result: 'ok',

@@ -9,7 +9,7 @@ import {
   selectEntries,
   shellQuote,
   isLiveEntry,
-} from '../session-story/src/render/library.mjs';
+} from '../cli/src/render/library.mjs';
 
 function sampleStory(overrides = {}) {
   return {

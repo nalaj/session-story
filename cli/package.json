@@ -1,0 +1,25 @@
+{
+  "name": "session-story",
+  "version": "0.6.0",
+  "description": "CLI behind the Session Story skill: turns a Claude Code session into one shareable HTML page, every prompt linked to the edits it caused.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Nenad Alajbegovic",
+  "homepage": "https://nalaj.github.io/session-story/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nalaj/session-story.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/nalaj/session-story/issues"
+  },
+  "keywords": ["claude-code", "agent-skill", "session-replay", "code-review", "diff"],
+  "bin": {
+    "session-story": "./bin/story.mjs"
+  },
+  "files": ["bin/", "src/", "LICENSE"],
+  "engines": {
+    "node": ">=18.18"
+  }
+}

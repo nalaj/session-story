@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -15,19 +16,25 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
       - run: npm test
       - run: npm run smoke
       - name: Tag must match the skill's versions
         shell: bash
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          pkg="$(node -p "require('./session-story/package.json').version")"
+          pkg="$(node -p "require('./cli/package.json').version")"
           skill="$(sed -n 's/^  version: "\(.*\)"$/\1/p' session-story/SKILL.md)"
           market="$(node -p "require('./.claude-plugin/marketplace.json').plugins.find(p => p.name === 'session-story').version")"
           if [ "$tag" != "$pkg" ] || [ "$tag" != "$skill" ] || [ "$tag" != "$market" ]; then
-            echo "::error::tag v$tag, session-story/package.json $pkg, SKILL.md $skill and marketplace.json $market must match"
+            echo "::error::tag v$tag, cli/package.json $pkg, SKILL.md $skill and marketplace.json $market must match"
             exit 1
           fi
+      - name: Publish the CLI to npm
+        working-directory: cli
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true

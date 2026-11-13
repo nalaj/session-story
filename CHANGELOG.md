@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- The CLI moved out of the skill folder into its own npm package, [`session-story`](https://www.npmjs.com/package/session-story) (source in `cli/`). The skill now runs it with `npx -y session-story@0.6.0`, pinned to the skill's version. The Claude Code plugin directory accepts only Markdown, text, JSON, YAML and images from unverified publishers, so `session-story/` now holds only `SKILL.md`, the schema, the plugin manifest and its icon.
+- `session-story/.claude-plugin/marketplace.json` is removed: its `source` pointed at a folder that does not exist from inside the plugin. The repository's root `marketplace.json` still lists the plugin.
+- `npm run smoke` checks the plugin folder against the directory's file rules and runs the CLI from a packed npm tarball.
+- Releases publish `cli/` to npm.
+
 ## 0.5.1
 
 - Start page: an animated demo under the hero plays the example session as a loop — three prompts and their edits in Claude Code, `/session-story`, then the story page with each prompt tied to its edits and the Diff, Story and Report views. It runs only while visible, steps under it jump to a scene, and with reduced motion it shows a still frame.

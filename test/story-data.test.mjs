@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildStoryData, planFullBases, inertJson, renderStoryData, contentKey } from '../session-story/src/render/story-data.mjs';
+import { buildStoryData, planFullBases, inertJson, renderStoryData, contentKey } from '../cli/src/render/story-data.mjs';
 
 const HUNKS = [{ oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-a', '+A'] }];
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildDependencies } from '../session-story/src/ir/dependencies.mjs';
+import { buildDependencies } from '../cli/src/ir/dependencies.mjs';
 
 function story(turns) {
   return { session: { id: 's', cwd: '/proj' }, turns };

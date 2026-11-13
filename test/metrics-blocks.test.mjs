@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   formatLatency, formatTokens, formatCost, renderScorecard, renderMetrics, renderWhereItWent,
-} from '../session-story/src/render/metrics-blocks.mjs';
+} from '../cli/src/render/metrics-blocks.mjs';
 
 function metrics(overrides = {}) {
   return {

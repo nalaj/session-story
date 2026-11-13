@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { crossIndexFiles } from '../session-story/src/ir/cross-index.mjs';
+import { crossIndexFiles } from '../cli/src/ir/cross-index.mjs';
 
 function edit(rel, added, removed) {
   return { rel, stats: { added, removed } };
@@ -48,7 +48,7 @@ test('guesses a language from the file extension', () => {
 });
 
 test('carries the out-of-project flag onto the file entry', async () => {
-  const { crossIndexFiles } = await import('../session-story/src/ir/cross-index.mjs');
+  const { crossIndexFiles } = await import('../cli/src/ir/cross-index.mjs');
   const files = crossIndexFiles([
     { index: 1, edits: [
       { rel: 'src/a.ts', outside_cwd: false, stats: { added: 1, removed: 0 } },

@@ -3,7 +3,7 @@ name: session-story
 description: Generate a self-contained HTML "session story" that links each prompt in a vibe coding session to the file edits it caused, with a review timeline, a GitHub-style diff view, and a plain-language narrative. Use when the user asks for a session recap, changelog, review artifact, "what did Claude change", or wants to share a summary of a Claude Code session with a teammate or stakeholder.
 license: MIT
 metadata:
-  version: "0.5.1"
+  version: "0.6.0"
   author: nalaj
   repository: https://github.com/nalaj/session-story
 ---
@@ -14,9 +14,10 @@ Turn the current (or a named) Claude Code session transcript into one
 shareable HTML file: git tells you what changed, this tells you what
 happened.
 
-`<skill-dir>` below is the directory that contains this SKILL.md (where the
-skill was installed). Run every command from the user's project directory,
-not from `<skill-dir>`, so the session is found by the project's cwd.
+The commands below run the `session-story` CLI from npm through `npx`
+(Node.js 18.18 or newer). The version is pinned to match this skill. Run
+every command from the user's project directory, so the session is found
+by the project's cwd.
 
 ## When to use
 
@@ -29,7 +30,7 @@ session" / "/session-story".
 1. **Extract.** Run the CLI to pull the session transcript (and any
    subagent transcripts) into a Story IR JSON file:
    ```bash
-   node <skill-dir>/bin/story.mjs extract -o <scratch>/story.json --brief
+   npx -y session-story@0.6.0 extract -o <scratch>/story.json --brief
    ```
    Use `--session <id>` for a specific session or omit it (defaults to
    `--latest`) for the current one. Pass `--cwd <dir>` if the project
@@ -108,13 +109,13 @@ session" / "/session-story".
 
 3. **Validate.**
    ```bash
-   node <skill-dir>/bin/story.mjs validate <scratch>/story.json --strict
+   npx -y session-story@0.6.0 validate <scratch>/story.json --strict
    ```
    If this reports missing summaries or report fields, go back to step 2.
 
 4. **Render.**
    ```bash
-   node <skill-dir>/bin/story.mjs render <scratch>/story.json --open
+   npx -y session-story@0.6.0 render <scratch>/story.json --open
    ```
    This writes a self-contained HTML file (no server, no dependencies)
    with four switchable views — Review (timeline + a summary of Claude’s
@@ -138,7 +139,7 @@ session" / "/session-story".
    switcher in that browser; the page stays on disk, and "Hidden (N)"
    brings it back. A session that is still running shows as Live and
    can't be hidden. Only when the user asks you to delete sessions for
-   real, run `node <skill-dir>/bin/story.mjs delete <session-id>...` (or `--all`). It
+   real, run `npx -y session-story@0.6.0 delete <session-id>...` (or `--all`). It
    deletes their pages and rewrites the index; an id prefix of 4 or more
    characters is enough. It refuses a running session unless `--force`
    is passed, and `--all` keeps running sessions.
@@ -152,7 +153,7 @@ session" / "/session-story".
 6. **Optional: markdown.** If the user asks for a PR description or a
    handoff for a fresh session, run
    ```bash
-   node <skill-dir>/bin/story.mjs export <scratch>/story.json [--template handoff]
+   npx -y session-story@0.6.0 export <scratch>/story.json [--template handoff]
    ```
    and give them the output (or pipe it to `pbcopy`). Every line comes
    from story.json; paste it as is and add no claims of your own. Files

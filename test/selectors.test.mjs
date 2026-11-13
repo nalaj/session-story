@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   allCommands, allErrors, shortSha, inProject, VALIDATION_CATEGORIES, validationRuns, lastValidation,
-} from '../session-story/src/ir/selectors.mjs';
+} from '../cli/src/ir/selectors.mjs';
 
 const turns = [
   { index: 1, bash: [{ command: 'ls', category: 'other', ok: true }, { command: 'npm test', category: 'test', ok: false }], errors: [{ tool: 'Bash', message: 'x' }] },
