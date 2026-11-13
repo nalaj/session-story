@@ -32,7 +32,14 @@ jobs:
           fi
       - name: Publish the CLI to npm
         working-directory: cli
-        run: npm publish --provenance --access public
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if npm view "session-story@$version" version >/dev/null 2>&1; then
+            echo "session-story@$version is already on npm; skipping publish"
+          else
+            npm publish --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - uses: softprops/action-gh-release@v3
