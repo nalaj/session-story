@@ -4,7 +4,7 @@
     <img src="docs/assets/session-story-lockup-light.svg" alt="Session Story" width="621" height="120" />
   </picture>
 </p>
-<h3 align="center">Stop guessing what your AI changed. See the whole story.</h3>
+<h3 align="center">Stop guessing what Claude Code changed. See the whole story.</h3>
 
 <p align="center"><img src="docs/assets/session-story-readme-hero.png" alt="A session story: each prompt in the session next to the code changes it led to" width="960" /></p>
 
@@ -134,11 +134,11 @@ before. Pass `--library <dir>` to put the library elsewhere, or `-o <file>`
 
 ## Choose the right view
 
-| View       | Best for                         | Shows                                                                                         |
-| ---------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Review** | Reviewing your own session       | A timeline of turns — prompt, one-sentence intent, number of files changed — with the turn's prompt and Claude's text output in its panel, and its code behind an “All changes” / per-file picker. Each turn shows how long it took and the tokens it used, with a bar for its share of the session's output |
-| **Diff**   | A teammate doing code review     | A GitHub-style file tree and diff, each hunk tagged with the turn that produced it            |
-| **Story**  | A stakeholder who wants the gist | A narrative card per turn with Claude's text output, code collapsed by default |
+| View       | Best for                                              | Shows                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Review** | Reviewing your own session                            | A timeline of turns — prompt, one-sentence intent, number of files changed — with the turn's prompt and Claude's text output in its panel, and its code behind an “All changes” / per-file picker. Each turn shows how long it took and the tokens it used, with a bar for its share of the session's output                                                                                                                                                        |
+| **Diff**   | A teammate doing code review                          | A GitHub-style file tree and diff, each hunk tagged with the turn that produced it                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Story**  | A stakeholder who wants the gist                      | A narrative card per turn with Claude's text output, code collapsed by default                                                                                                                                                                                                                                                                                                                                                                                      |
 | **Report** | Anyone who wants what happened, not just what changed | Outcome; session metrics (tool calls, failures, validation, retries) and a “Where it went” ranking of the turns that used the most output tokens and time, and of any turn that re-sent its context past the prompt cache; active time next to wall-clock time; plan/intent, commands run, tests & validation, errors and how they were resolved, decisions, dependencies, git state; and deterministic metrics, token usage, and cost when Claude Code recorded it |
 
 The metrics sections appear for stories extracted with trace data; an older `story.json` renders the Report without them.
@@ -161,12 +161,12 @@ Two toggles in the nav apply across the views, and persist across visits:
 
 ## How it works
 
-| Step          | What happens                                                                                                                                             |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Step          | What happens                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Extract**   | Locates the session transcript (and any subagent transcripts) under `~/.claude/projects/<slug>/`, parses it, and builds a typed IR (`story.json`) — including commands run, errors, git branch/commits, and dependency changes, all pulled straight from the transcript and git. It also records a chronological trace of every prompt, tool call and subagent with status and latency, per-turn durations, token usage (and cost, when Claude Code has written it), and deterministic metrics: the data behind the Report view's metrics sections. Anything the transcript did not record stays `null`, never 0. |
-| **Summarize** | Claude fills in the session summary, one-sentence turn intents, and the report narrative (plan, decisions, outcome), read from the `--brief` projection only — never the full transcript. |
-| **Validate**  | Checks the IR's shape and, in `--strict` mode, that every turn, the session, and the report have their required fields filled in.                        |
-| **Render**    | Compiles the IR into one self-contained HTML file with inline CSS and JS — no external requests, no template step left undone.                           |
+| **Summarize** | Claude fills in the session summary, one-sentence turn intents, and the report narrative (plan, decisions, outcome), read from the `--brief` projection only — never the full transcript.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **Validate**  | Checks the IR's shape and, in `--strict` mode, that every turn, the session, and the report have their required fields filled in.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Render**    | Compiles the IR into one self-contained HTML file with inline CSS and JS — no external requests, no template step left undone.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 Command-line equivalent of the full flow (from a clone; an installed skill lives at `~/.claude/skills/session-story/`):
 
@@ -204,13 +204,13 @@ A hosted viewer and WYSIWYG editing are intentionally outside the current scope.
 
 ## Repository layout
 
-| Path | What it is |
-| --- | --- |
-| `session-story/` | **The skill**: exactly what `npx skills add` installs (`SKILL.md`, `bin/`, `src/`, `schemas/`) |
-| `test/` | `node --test` suite for the skill |
-| `scripts/` | Package smoke test, site build, and the synthetic demo session |
-| `site/` | GitHub Pages start page; `npm run build:site` adds the live example into `_site/` |
-| `examples/story.html` | Standalone example page, regenerated by `build:site` |
+| Path                  | What it is                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| `session-story/`      | **The skill**: exactly what `npx skills add` installs (`SKILL.md`, `bin/`, `src/`, `schemas/`) |
+| `test/`               | `node --test` suite for the skill                                                              |
+| `scripts/`            | Package smoke test, site build, and the synthetic demo session                                 |
+| `site/`               | GitHub Pages start page; `npm run build:site` adds the live example into `_site/`              |
+| `examples/story.html` | Standalone example page, regenerated by `build:site`                                           |
 
 ## Development
 
