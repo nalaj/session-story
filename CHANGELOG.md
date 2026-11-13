@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.1
 
 - Start page: an animated demo under the hero plays the example session as a loop — three prompts and their edits in Claude Code, `/session-story`, then the story page with each prompt tied to its edits and the Diff, Story and Report views. It runs only while visible, steps under it jump to a scene, and with reduced motion it shows a still frame.
 - `npm run record:demo` records one loop of it to `docs/assets/session-story-demo.mp4` and `.gif` (needs Playwright and ffmpeg, which the repo does not depend on).
